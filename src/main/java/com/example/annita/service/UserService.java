@@ -3,6 +3,7 @@ package com.example.annita.service;
 import com.example.annita.dto.*;
 import com.example.annita.model.User;
 import com.example.annita.repository.UserRepository;
+import com.example.annita.repository.specification.UserSpecifications;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -119,7 +120,7 @@ public class UserService {
         int size = Math.max(1, perPage);
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(pageIndex, size);
 
-        org.springframework.data.domain.Page<User> usersPage = userRepository.findAllFiltered(search, role, isActive, pageable);
+        org.springframework.data.domain.Page<User> usersPage = userRepository.findAll(UserSpecifications.filter(search, role, isActive), pageable);
 
         List<UserResponse> content = usersPage.getContent().stream()
                 .map(UserResponse::new)

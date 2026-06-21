@@ -5,6 +5,7 @@ import com.example.annita.dto.CategoryResponse;
 import com.example.annita.dto.PageResponse;
 import com.example.annita.model.Category;
 import com.example.annita.repository.CategoryRepository;
+import com.example.annita.repository.specification.CategorySpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,7 @@ public class CategoryService {
         int size = Math.max(1, perPage);
         PageRequest pageable = PageRequest.of(pageIndex, size);
 
-        Page<Category> categoriesPage = categoryRepository.findAllFiltered(search, pageable);
+        Page<Category> categoriesPage = categoryRepository.findAll(CategorySpecifications.filter(search), pageable);
 
         List<CategoryResponse> content = categoriesPage.getContent().stream()
                 .map(CategoryResponse::new)

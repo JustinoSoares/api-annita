@@ -5,6 +5,7 @@ import com.example.annita.dto.PageResponse;
 import com.example.annita.dto.SubscribeRequest;
 import com.example.annita.model.NewsletterSubscription;
 import com.example.annita.repository.NewsletterSubscriptionRepository;
+import com.example.annita.repository.specification.NewsletterSubscriptionSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -78,7 +79,7 @@ public class NewsletterSubscriptionService {
         int size = Math.max(1, perPage);
         Pageable pageable = PageRequest.of(pageIndex, size);
 
-        Page<NewsletterSubscription> pageResult = repository.findAllFiltered(search, pageable);
+        Page<NewsletterSubscription> pageResult = repository.findAll(NewsletterSubscriptionSpecifications.filter(search), pageable);
 
         List<NewsletterSubscriptionResponse> content = pageResult.getContent().stream()
                 .map(NewsletterSubscriptionResponse::new)

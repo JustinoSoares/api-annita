@@ -9,6 +9,7 @@ import com.example.annita.repository.CategoryRepository;
 import com.example.annita.repository.EventRepository;
 import com.example.annita.repository.ReportRepository;
 import com.example.annita.repository.UserRepository;
+import com.example.annita.repository.specification.EventSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -68,7 +69,7 @@ public class EventService {
         int size = Math.max(1, perPage);
         PageRequest pageable = PageRequest.of(pageIndex, size);
 
-        Page<Event> eventsPage = eventRepository.findApprovedFiltered(search, categoryId, modality, type, pageable);
+        Page<Event> eventsPage = eventRepository.findAll(EventSpecifications.approvedAndFiltered(search, categoryId, modality, type), pageable);
 
         List<EventResponse> content = eventsPage.getContent().stream()
                 .map(EventResponse::new)
@@ -82,7 +83,7 @@ public class EventService {
         int size = Math.max(1, perPage);
         PageRequest pageable = PageRequest.of(pageIndex, size);
 
-        Page<Event> eventsPage = eventRepository.findAllFiltered(search, categoryId, modality, type, status, pageable);
+        Page<Event> eventsPage = eventRepository.findAll(EventSpecifications.allFiltered(search, categoryId, modality, type, status), pageable);
 
         List<EventResponse> content = eventsPage.getContent().stream()
                 .map(EventResponse::new)
