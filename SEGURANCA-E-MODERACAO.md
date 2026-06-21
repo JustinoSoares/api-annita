@@ -26,6 +26,14 @@
 - Código de 6 dígitos com expiração de 15 min
 - Reenvio a cada 60s (máx 3 tentativas)
 
+**Endpoints (backend):**
+| Método | Path | Acesso | Descrição |
+|---|---|---|---|
+| `POST` | `/api/auth/send-verification-code` | Autenticado | Gera código de 6 dígitos e envia por email |
+| `POST` | `/api/auth/verify-email` | Autenticado | Verifica código e marca email como confirmado |
+
+O `EmailService` usa SMTP configurável. Se `EMAIL_ENABLED=false`, o código aparece no log do terminal.
+
 ---
 
 ## 2. Barreiras Antes da Publicação
@@ -54,7 +62,7 @@ Categorias são agrupadas por `groupName`. Exemplo: grupo `"Formação"` pode co
 | Método | Path | Função | Acesso |
 |---|---|---|---|
 | `GET` | `/api/categories` | Listar categorias (paginado) | Qualquer autenticado |
-| `GET` | `/api/categories/by-group?groupName=X` | Listar categorias de um grupo | Qualquer autenticado |
+| `GET` | `/api/categories/by-group` | Listar todas as categorias agrupadas (Map<grupo, lista>) | Qualquer autenticado |
 | `GET` | `/api/categories/{id}` | Detalhes de uma categoria | Qualquer autenticado |
 | `POST` | `/api/categories` | Criar categoria | ADMIN / MODERATOR |
 | `PUT` | `/api/categories/{id}` | Atualizar categoria | ADMIN / MODERATOR |
@@ -88,23 +96,36 @@ Já existe (`PublishConfirmationModal`). Deve ser guardado em log (quem + quando
 ### 3.1. Fluxo da denúncia (backend implementado)
 
 **Endpoint:** `POST /api/events/{id}/report` (qualquer utilizador autenticado)
-- Remove o evento da visualização pública (`status` → `REPORTED`)
-- O autor do evento volta a precisar de aprovação nos próximos eventos
+
+Cada denúncia fica registada na tabela `tb_reports` com:
+- `event_id` — evento denunciado
+- `reported_by` — quem denunciou
+- `reason` — enum: `FAKE_OR_MISLEADING`, `FRAUD`, `OFFENSIVE_CONTENT`, `SPAM`, `WRONG_CATEGORY`, `OTHER`
+- `description` — texto opcional
+
+Ao denunciar:
+- O evento sai da visualização pública (`status` → `REPORTED`)
+- O autor recebe notificação por email
+- O autor volta a precisar de aprovação nos próximos eventos
 - O evento fica visível no painel de administração (`GET /api/events/admin?status=REPORTED`)
 
+```json
+POST /api/events/{id}/report
+{
+  "reason": "FAKE_OR_MISLEADING",
+  "description": "O evento cobra inscrição mas não existe"
+}
 ```
-Interface (frontend):
-Utilizador clica "Denunciar"
-    → Modal com motivos (select obrigatório):
-        [ ] Informação falsa/enganosa
-        [ ] Evento fraudulento (burla)
-        [ ] Conteúdo ofensivo/abusivo
-        [ ] Spam ou repetido
-        [ ] Categoria incorreta
-        [ ] Outro (campo texto livre)
-    → Opcional: descrição adicional
-    → Submeter → POST /api/events/{id}/report
-```
+
+**Motivos disponíveis:**
+| Código | Descrição |
+|---|---|
+| `FAKE_OR_MISLEADING` | Informação falsa/enganosa |
+| `FRAUD` | Evento fraudulento (burla) |
+| `OFFENSIVE_CONTENT` | Conteúdo ofensivo/abusivo |
+| `SPAM` | Spam ou repetido |
+| `WRONG_CATEGORY` | Categoria incorreta |
+| `OTHER` | Outro |
 
 ### 3.2. Estados do evento (backend)
 
@@ -195,13 +216,22 @@ Referenciar no footer e no modal de publicação.
 | Sign-in | 5 tentativas | 15 minutos |
 | Sign-up | 3 contas | 24 horas (por IP) |
 
-### 5.2. Sanitização de input
+### 5.2. Cancelamento de subscrição (newsletter) com 2FA
+
+O cancelamento da newsletter utiliza duplo fator de verificação:
+
+1. `POST /api/newsletter/unsubscribe/request` — envia o email, gera código de 6 dígitos (válido 15 min)
+2. `POST /api/newsletter/unsubscribe/confirm` — confirma com email + código, remove a subscrição
+
+Ambos os endpoints são públicos (sem autenticação).
+
+### 5.4. Sanitização de input
 
 - Título e descrição: remover HTML/scripts antes de guardar
 - URLs: validar formato, bloquear IPs internos, domains maliciosos
 - Imagens: validar tipo real (não confiar no `Content-Type` do upload)
 
-### 5.3. Headers de segurança (`next.config.ts`)
+### 5.5. Headers de segurança (`next.config.ts`)
 
 ```ts
 // next.config.ts
@@ -223,13 +253,26 @@ const nextConfig = {
 };
 ```
 
-### 5.4. Proteção CSRF
+### 5.6. Proteção CSRF
 
 - Usar tokens CSRF em todas as mutações (Next.js Server Actions já incluem proteção nativa)
 
 ---
 
-## 6. Implementação Sugerida (Ordem Prioritária)
+## 6. Health Check
+
+`GET /api/health` — público, retorna o estado do servidor e da base de dados.
+
+```json
+{
+  "status": "UP",
+  "database": "connected"
+}
+```
+
+---
+
+## 7. Implementação Sugerida (Ordem Prioritária)
 
 ### Fase 1 — Essencial (MVP seguro)
 1. Sistema de autenticação (NextAuth / lucia / Clerk)
@@ -250,7 +293,7 @@ const nextConfig = {
 
 ---
 
-## 7. Stack Recomendada (compatível com Next.js 16)
+## 8. Stack Recomendada (compatível com Next.js 16)
 
 | Funcionalidade | Biblioteca/Solução |
 |---|---|

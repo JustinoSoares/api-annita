@@ -11,8 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,10 +47,10 @@ public class CategoryService {
         return new PageResponse<>(categoriesPage, content);
     }
 
-    public List<CategoryResponse> getByGroup(String groupName) {
-        return categoryRepository.findByGroupName(groupName).stream()
+    public Map<String, List<CategoryResponse>> getGrouped() {
+        return categoryRepository.findAll().stream()
                 .map(CategoryResponse::new)
-                .collect(Collectors.toList());
+                .collect(Collectors.groupingBy(CategoryResponse::getGroupName, LinkedHashMap::new, Collectors.toList()));
     }
 
     public CategoryResponse getById(UUID id) {

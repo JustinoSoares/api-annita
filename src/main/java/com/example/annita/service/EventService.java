@@ -3,9 +3,11 @@ package com.example.annita.service;
 import com.example.annita.dto.EventRequest;
 import com.example.annita.dto.EventResponse;
 import com.example.annita.dto.PageResponse;
+import com.example.annita.dto.ReportRequest;
 import com.example.annita.model.*;
 import com.example.annita.repository.CategoryRepository;
 import com.example.annita.repository.EventRepository;
+import com.example.annita.repository.ReportRepository;
 import com.example.annita.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,11 +25,15 @@ public class EventService {
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final ReportRepository reportRepository;
 
-    public EventService(EventRepository eventRepository, CategoryRepository categoryRepository, UserRepository userRepository) {
+    public EventService(EventRepository eventRepository, CategoryRepository categoryRepository, UserRepository userRepository, EmailService emailService, ReportRepository reportRepository) {
         this.eventRepository = eventRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.reportRepository = reportRepository;
     }
 
     public EventResponse create(EventRequest request, UUID userId) {
@@ -178,7 +184,7 @@ public class EventService {
         return new EventResponse(saved);
     }
 
-    public EventResponse report(UUID id) {
+    public EventResponse report(UUID id, ReportRequest request, UUID userId) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
 
@@ -186,8 +192,23 @@ public class EventService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only approved events can be reported");
         }
 
+        User reporter = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
+
+        Report report = Report.builder()
+                .event(event)
+                .reportedBy(reporter)
+                .reason(request.getReason())
+                .description(request.getDescription())
+                .build();
+
+        reportRepository.save(report);
+
         event.setStatus(EventStatus.REPORTED);
         Event saved = eventRepository.save(event);
+
+        User creator = saved.getCreatedBy();
+        emailService.sendEventReportedNotification(creator.getEmail(), saved.getTitle());
 
         return new EventResponse(saved);
     }

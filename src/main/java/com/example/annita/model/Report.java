@@ -6,29 +6,32 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "tb_newsletter_subscriptions")
+@Table(name = "tb_reports")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class NewsletterSubscription {
+public class Report {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, length = 100)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", nullable = false)
+    private Event event;
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String email;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reported_by", nullable = false, updatable = false)
+    private User reportedBy;
 
-    @Column(name = "verification_code", length = 6)
-    private String verificationCode;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private ReportReason reason;
 
-    @Column(name = "verification_code_expires_at")
-    private LocalDateTime verificationCodeExpiresAt;
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     @Column(nullable = false, name = "created_at", updatable = false)
     private LocalDateTime createdAt;

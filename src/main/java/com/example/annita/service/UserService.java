@@ -8,7 +8,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -18,11 +20,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
+    private final EmailService emailService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService, EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
+        this.emailService = emailService;
     }
 
     public UserResponse register(RegisterRequest request) {
@@ -60,6 +64,48 @@ public class UserService {
 
         String token = tokenService.generateToken(user);
         return new LoginResponse(token, user.getUsername(), user.getEmail(), user.getRole().name());
+    }
+
+    public void sendVerificationCode(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (user.isEmailVerified()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already verified");
+        }
+
+        String code = String.format("%06d", new Random().nextInt(999999));
+        user.setVerificationCode(code);
+        user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+
+        userRepository.save(user);
+        emailService.sendVerificationCode(user.getEmail(), code);
+    }
+
+    public void verifyEmail(UUID userId, String code) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (user.isEmailVerified()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already verified");
+        }
+
+        if (user.getVerificationCode() == null || user.getVerificationCodeExpiresAt() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No verification code requested. Please request a code first.");
+        }
+
+        if (LocalDateTime.now().isAfter(user.getVerificationCodeExpiresAt())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Verification code has expired. Please request a new one.");
+        }
+
+        if (!user.getVerificationCode().equals(code)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid verification code.");
+        }
+
+        user.setEmailVerified(true);
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiresAt(null);
+        userRepository.save(user);
     }
 
     public List<UserResponse> getAllUsers() {

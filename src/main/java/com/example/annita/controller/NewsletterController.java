@@ -1,8 +1,6 @@
 package com.example.annita.controller;
 
-import com.example.annita.dto.NewsletterSubscriptionResponse;
-import com.example.annita.dto.PageResponse;
-import com.example.annita.dto.SubscribeRequest;
+import com.example.annita.dto.*;
 import com.example.annita.service.NewsletterSubscriptionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,10 +29,17 @@ public class NewsletterController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @DeleteMapping("/unsubscribe")
-    @Operation(summary = "Unsubscribe from the newsletter", description = "Allows any subscriber to unsubscribe using their email.")
-    public ResponseEntity<Void> unsubscribe(@RequestParam String email) {
-        service.unsubscribe(email);
+    @PostMapping("/unsubscribe/request")
+    @Operation(summary = "Request unsubscribe code", description = "Sends a 6-digit verification code to the subscriber's email.")
+    public ResponseEntity<Void> requestUnsubscribe(@Valid @RequestBody UnsubscribeRequest request) {
+        service.requestUnsubscribe(request.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/unsubscribe/confirm")
+    @Operation(summary = "Confirm unsubscribe with verification code", description = "Unsubscribes the user after verifying the 6-digit code sent to their email.")
+    public ResponseEntity<Void> confirmUnsubscribe(@Valid @RequestBody UnsubscribeConfirmRequest request) {
+        service.confirmUnsubscribe(request.getEmail(), request.getCode());
         return ResponseEntity.noContent().build();
     }
 

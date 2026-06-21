@@ -3,6 +3,7 @@ package com.example.annita.controller;
 import com.example.annita.dto.EventRequest;
 import com.example.annita.dto.EventResponse;
 import com.example.annita.dto.PageResponse;
+import com.example.annita.dto.ReportRequest;
 import com.example.annita.model.EventModality;
 import com.example.annita.model.EventStatus;
 import com.example.annita.model.EventType;
@@ -131,8 +132,9 @@ public class EventController {
     @PostMapping("/{id}/report")
     @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
     @Operation(summary = "Report an approved event", description = "Accessible by any authenticated user.")
-    public ResponseEntity<EventResponse> report(@PathVariable UUID id) {
-        EventResponse response = eventService.report(id);
+    public ResponseEntity<EventResponse> report(@PathVariable UUID id, @Valid @RequestBody ReportRequest request, Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getClaim("userId"));
+        EventResponse response = eventService.report(id, request, userId);
         return ResponseEntity.ok(response);
     }
 }

@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 import java.util.UUID;
 
 @RestController
@@ -46,9 +46,9 @@ public class CategoryController {
     }
 
     @GetMapping("/by-group")
-    @Operation(summary = "List categories by group name")
-    public ResponseEntity<List<CategoryResponse>> getByGroup(@RequestParam String groupName) {
-        List<CategoryResponse> response = categoryService.getByGroup(groupName);
+    @Operation(summary = "List all categories grouped by group name")
+    public ResponseEntity<Map<String, List<CategoryResponse>>> getGrouped() {
+        Map<String, List<CategoryResponse>> response = categoryService.getGrouped();
         return ResponseEntity.ok(response);
     }
 

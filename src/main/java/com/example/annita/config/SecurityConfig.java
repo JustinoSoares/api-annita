@@ -46,7 +46,7 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/newsletter/subscribe",
-                                "/api/newsletter/unsubscribe",
+                                "/api/newsletter/unsubscribe/**",
                                 "/api/events",
                                 "/api/events/{id}",
                                 "/v3/api-docs/**",
