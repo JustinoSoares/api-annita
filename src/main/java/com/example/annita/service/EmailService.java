@@ -15,8 +15,8 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final boolean enabled;
 
-    public EmailService(JavaMailSender mailSender, @Value("${app.email.enabled:false}") boolean enabled) {
-        this.mailSender = mailSender;
+    public EmailService(java.util.Optional<JavaMailSender> mailSender, @Value("${app.email.enabled:false}") boolean enabled) {
+        this.mailSender = mailSender.orElse(null);
         this.enabled = enabled;
     }
 
@@ -24,7 +24,7 @@ public class EmailService {
         String subject = "Annita — Código de verificação";
         String body = "O seu código de verificação é: " + code + "\n\nVálido por 15 minutos.";
 
-        if (enabled) {
+        if (enabled && mailSender != null) {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(to);
             message.setSubject(subject);
@@ -39,7 +39,7 @@ public class EmailService {
         String subject = "Annita — Evento denunciado";
         String body = "O seu evento \"" + eventTitle + "\" foi denunciado e removido da plataforma.";
 
-        if (enabled) {
+        if (enabled && mailSender != null) {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(to);
             message.setSubject(subject);
