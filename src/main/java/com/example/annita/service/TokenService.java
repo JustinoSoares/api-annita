@@ -32,6 +32,8 @@ public class TokenService {
                 .claim("scope", user.getRole().name())
                 .claim("role", user.getRole().name())
                 .claim("is_active", user.isActive())
+                .claim("is_email_verified", user.isEmailVerified())
+                .claim("receive_notifications", user.isReceiveNotifications())
                 .build();
         var header = JwsHeader.with(MacAlgorithm.HS256).build();
         return this.encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
