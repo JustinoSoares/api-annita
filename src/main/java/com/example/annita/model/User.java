@@ -2,6 +2,8 @@ package com.example.annita.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcType;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -28,7 +30,8 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false)
     @Builder.Default
     private UserRole role = UserRole.CONTRIBUTOR;
 

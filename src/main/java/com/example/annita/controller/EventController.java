@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +35,7 @@ public class EventController {
     @PostMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
     @Operation(summary = "Create a new event", description = "Accessible by CONTRIBUTOR, MODERATOR, and ADMIN roles.")
-    public ResponseEntity<EventResponse> create(@Valid @RequestBody EventRequest request, Jwt jwt) {
+    public ResponseEntity<EventResponse> create(@Valid @RequestBody EventRequest request, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getClaim("userId"));
         EventResponse response = eventService.create(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -74,7 +75,7 @@ public class EventController {
     public ResponseEntity<PageResponse<EventResponse>> getMyEvents(
             @Parameter(description = "Page number (1-indexed)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "Number of items per page") @RequestParam(name = "per_page", defaultValue = "10") int perPage,
-            Jwt jwt) {
+            @AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getClaim("userId"));
         PageResponse<EventResponse> response = eventService.getByUser(userId, page, perPage);
         return ResponseEntity.ok(response);
@@ -98,7 +99,7 @@ public class EventController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
     @Operation(summary = "Update an event", description = "Accessible by the owner, MODERATOR, or ADMIN.")
-    public ResponseEntity<EventResponse> update(@PathVariable UUID id, @Valid @RequestBody EventRequest request, Jwt jwt) {
+    public ResponseEntity<EventResponse> update(@PathVariable UUID id, @Valid @RequestBody EventRequest request, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getClaim("userId"));
         EventResponse response = eventService.update(id, request, userId);
         return ResponseEntity.ok(response);
@@ -107,7 +108,7 @@ public class EventController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
     @Operation(summary = "Delete an event", description = "Accessible by the owner, MODERATOR, or ADMIN.")
-    public ResponseEntity<Void> delete(@PathVariable UUID id, Jwt jwt) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getClaim("userId"));
         eventService.delete(id, userId);
         return ResponseEntity.noContent().build();
@@ -132,7 +133,7 @@ public class EventController {
     @PostMapping("/{id}/report")
     @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
     @Operation(summary = "Report an approved event", description = "Accessible by any authenticated user.")
-    public ResponseEntity<EventResponse> report(@PathVariable UUID id, @Valid @RequestBody ReportRequest request, Jwt jwt) {
+    public ResponseEntity<EventResponse> report(@PathVariable UUID id, @Valid @RequestBody ReportRequest request, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getClaim("userId"));
         EventResponse response = eventService.report(id, request, userId);
         return ResponseEntity.ok(response);

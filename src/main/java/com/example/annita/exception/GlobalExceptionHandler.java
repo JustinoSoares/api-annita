@@ -1,9 +1,13 @@
 package com.example.annita.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mail.MailException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,6 +22,8 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, String>> handleResponseStatus(ResponseStatusException ex) {
@@ -75,15 +81,24 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", "O parâmetro '" + ex.getParameterName() + "' é obrigatório."));
     }
 
-    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, String>> handleDataIntegrity(org.springframework.dao.DataIntegrityViolationException ex) {
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrity(DataIntegrityViolationException ex) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(Map.of("message", "Operação não permitida. Este registro possui dependências no sistema."));
     }
 
+    @ExceptionHandler(MailException.class)
+    public ResponseEntity<Map<String, String>> handleMail(MailException ex) {
+        log.error("Erro ao enviar email", ex);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Erro ao enviar email. Verifique a configuração do servidor de email."));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
+        log.error("Erro interno não tratado", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", "Erro interno do servidor. Tente novamente mais tarde."));

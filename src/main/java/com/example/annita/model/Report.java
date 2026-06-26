@@ -2,6 +2,8 @@ package com.example.annita.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcType;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -27,7 +29,8 @@ public class Report {
     private User reportedBy;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false)
     private ReportReason reason;
 
     @Column(columnDefinition = "TEXT")

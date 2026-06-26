@@ -2,6 +2,8 @@ package com.example.annita.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcType;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -32,21 +34,24 @@ public class Event {
     private Category category;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false)
     private EventModality modality;
 
     @Column(nullable = false, name = "start_date")
     private LocalDateTime startDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false)
     private EventType type;
 
     @Column(name = "cover_image", length = 500)
     private String coverImage;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false)
     @Builder.Default
     private EventStatus status = EventStatus.PENDING;
 
