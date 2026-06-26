@@ -10,12 +10,12 @@ import lombok.Setter;
 @Setter
 public class SubscribeRequest {
 
-    @NotBlank(message = "Name is required")
-    @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+    @NotBlank(message = "Nome é obrigatório")
+    @Size(min = 2, max = 100, message = "Nome deve ter entre 2 e 100 caracteres")
     private String name;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email must be a valid email address")
-    @Size(max = 100, message = "Email cannot exceed 100 characters")
+    @NotBlank(message = "Email é obrigatório")
+    @Email(message = "Email deve ser um endereço válido")
+    @Size(max = 100, message = "Email não pode exceder 100 caracteres")
     private String email;
 }

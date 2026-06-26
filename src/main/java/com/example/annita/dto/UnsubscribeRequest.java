@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class UnsubscribeRequest {
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email é obrigatório")
+    @Email(message = "Formato de email inválido")
     private String email;
 }

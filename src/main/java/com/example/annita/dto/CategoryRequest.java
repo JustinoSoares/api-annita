@@ -9,11 +9,11 @@ import lombok.Setter;
 @Setter
 public class CategoryRequest {
 
-    @NotBlank(message = "Category name is required")
-    @Size(max = 100, message = "Category name must be at most 100 characters")
+    @NotBlank(message = "Nome da categoria é obrigatório")
+    @Size(max = 100, message = "Nome da categoria deve ter no máximo 100 caracteres")
     private String name;
 
-    @NotBlank(message = "Group name is required")
-    @Size(max = 100, message = "Group name must be at most 100 characters")
+    @NotBlank(message = "Nome do grupo é obrigatório")
+    @Size(max = 100, message = "Nome do grupo deve ter no máximo 100 caracteres")
     private String groupName;
 }

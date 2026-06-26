@@ -9,14 +9,14 @@ import lombok.Setter;
 @Setter
 public class UserUpdateRequest {
 
-    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @Size(min = 3, max = 50, message = "Nome de usuário deve ter entre 3 e 50 caracteres")
     private String username;
 
-    @Email(message = "Email must be a valid email address")
-    @Size(max = 100, message = "Email cannot exceed 100 characters")
+    @Email(message = "Email deve ser um endereço válido")
+    @Size(max = 100, message = "Email não pode exceder 100 caracteres")
     private String email;
 
-    @Size(min = 6, max = 100, message = "Password must be at least 6 characters")
+    @Size(min = 6, max = 100, message = "Senha deve ter pelo menos 6 caracteres")
     private String password;
 
     private Boolean receiveNotifications;

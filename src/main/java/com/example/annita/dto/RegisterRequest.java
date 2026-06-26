@@ -10,17 +10,17 @@ import lombok.Setter;
 @Setter
 public class RegisterRequest {
 
-    @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @NotBlank(message = "Nome de usuário é obrigatório")
+    @Size(min = 3, max = 50, message = "Nome de usuário deve ter entre 3 e 50 caracteres")
     private String username;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email must be a valid email address")
-    @Size(max = 100, message = "Email cannot exceed 100 characters")
+    @NotBlank(message = "Email é obrigatório")
+    @Email(message = "Email deve ser um endereço válido")
+    @Size(max = 100, message = "Email não pode exceder 100 caracteres")
     private String email;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 6, max = 100, message = "Password must be at least 6 characters")
+    @NotBlank(message = "Senha é obrigatória")
+    @Size(min = 6, max = 100, message = "Senha deve ter pelo menos 6 caracteres")
     private String password;
 
     private boolean receiveNotifications = true;

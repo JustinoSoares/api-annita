@@ -32,10 +32,10 @@ public class UserService {
 
     public UserResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is already taken");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este nome de usuário já está em uso");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already registered");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este email já está cadastrado");
         }
 
         User user = User.builder()
@@ -53,14 +53,14 @@ public class UserService {
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
                 .or(() -> userRepository.findByEmail(request.getUsername()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nome de usuário ou senha inválidos"));
 
         if (!user.isActive()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This account is inactive/blocked");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Esta conta está inativa/bloqueada");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nome de usuário ou senha inválidos");
         }
 
         String token = tokenService.generateToken(user);
@@ -69,10 +69,10 @@ public class UserService {
 
     public void sendVerificationCode(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
 
         if (user.isEmailVerified()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already verified");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email já foi verificado");
         }
 
         String code = String.format("%06d", new Random().nextInt(999999));
@@ -85,22 +85,22 @@ public class UserService {
 
     public void verifyEmail(UUID userId, String code) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
 
         if (user.isEmailVerified()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already verified");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email já foi verificado");
         }
 
         if (user.getVerificationCode() == null || user.getVerificationCodeExpiresAt() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No verification code requested. Please request a code first.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum código de verificação solicitado. Solicite um código primeiro.");
         }
 
         if (LocalDateTime.now().isAfter(user.getVerificationCodeExpiresAt())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Verification code has expired. Please request a new one.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código de verificação expirou. Solicite um novo código.");
         }
 
         if (!user.getVerificationCode().equals(code)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid verification code.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código de verificação inválido.");
         }
 
         user.setEmailVerified(true);
@@ -131,24 +131,24 @@ public class UserService {
 
     public UserResponse getUserById(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
         return new UserResponse(user);
     }
 
     public UserResponse updateUser(UUID id, UserUpdateRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
 
         if (request.getUsername() != null && !request.getUsername().equals(user.getUsername())) {
             if (userRepository.existsByUsername(request.getUsername())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is already taken");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este nome de usuário já está em uso");
             }
             user.setUsername(request.getUsername());
         }
 
         if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
             if (userRepository.existsByEmail(request.getEmail())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already registered");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este email já está cadastrado");
             }
             user.setEmail(request.getEmail());
         }
@@ -167,7 +167,7 @@ public class UserService {
 
     public void deleteUser(UUID id) {
         if (!userRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado");
         }
         userRepository.deleteById(id);
     }

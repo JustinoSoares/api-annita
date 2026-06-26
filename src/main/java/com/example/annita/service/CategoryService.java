@@ -56,13 +56,13 @@ public class CategoryService {
 
     public CategoryResponse getById(UUID id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada"));
         return new CategoryResponse(category);
     }
 
     public CategoryResponse update(UUID id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada"));
 
         category.setName(request.getName());
         category.setGroupName(request.getGroupName());
@@ -73,7 +73,7 @@ public class CategoryService {
 
     public void delete(UUID id) {
         if (!categoryRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada");
         }
         categoryRepository.deleteById(id);
     }

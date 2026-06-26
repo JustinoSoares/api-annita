@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class ReportRequest {
 
-    @NotNull(message = "Reason is required")
+    @NotNull(message = "Motivo é obrigatório")
     private ReportReason reason;
 
     private String description;

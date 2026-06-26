@@ -39,10 +39,10 @@ public class EventService {
 
     public EventResponse create(EventRequest request, UUID userId) {
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoria não encontrada"));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado"));
 
         boolean hasReportedEvents = eventRepository.countByCreatedByIdAndStatus(userId, EventStatus.REPORTED) > 0;
         boolean autoApprove = user.getApprovedEventCount() >= 2 && !hasReportedEvents;
@@ -94,13 +94,13 @@ public class EventService {
 
     public EventResponse getById(UUID id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
         return new EventResponse(event);
     }
 
     public EventResponse getApprovedById(UUID id) {
         Event event = eventRepository.findByIdAndStatus(id, EventStatus.APPROVED)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
         return new EventResponse(event);
     }
 
@@ -120,14 +120,14 @@ public class EventService {
 
     public EventResponse update(UUID id, EventRequest request, UUID userId) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
         if (!event.getCreatedBy().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only update your own events");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você só pode editar seus próprios eventos");
         }
 
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoria não encontrada"));
 
         event.setTitle(request.getTitle());
         event.setDescription(request.getDescription());
@@ -144,10 +144,10 @@ public class EventService {
 
     public void delete(UUID id, UUID userId) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
         if (!event.getCreatedBy().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only delete your own events");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você só pode excluir seus próprios eventos");
         }
 
         eventRepository.deleteById(id);
@@ -155,10 +155,10 @@ public class EventService {
 
     public EventResponse approve(UUID id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
         if (event.getStatus() != EventStatus.PENDING) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending events can be approved");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Apenas eventos pendentes podem ser aprovados");
         }
 
         event.setStatus(EventStatus.APPROVED);
@@ -173,10 +173,10 @@ public class EventService {
 
     public EventResponse reject(UUID id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
         if (event.getStatus() != EventStatus.PENDING) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending events can be rejected");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Apenas eventos pendentes podem ser rejeitados");
         }
 
         event.setStatus(EventStatus.REJECTED);
@@ -187,14 +187,14 @@ public class EventService {
 
     public EventResponse report(UUID id, ReportRequest request, UUID userId) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
         if (event.getStatus() != EventStatus.APPROVED) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only approved events can be reported");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Apenas eventos aprovados podem ser denunciados");
         }
 
         User reporter = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado"));
 
         Report report = Report.builder()
                 .event(event)

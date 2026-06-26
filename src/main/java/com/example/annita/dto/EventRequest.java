@@ -14,28 +14,28 @@ import java.util.UUID;
 @Setter
 public class EventRequest {
 
-    @NotBlank(message = "Title is required")
-    @Size(max = 200, message = "Title must be at most 200 characters")
+    @NotBlank(message = "Título é obrigatório")
+    @Size(max = 200, message = "Título deve ter no máximo 200 caracteres")
     private String title;
 
-    @NotBlank(message = "Description is required")
+    @NotBlank(message = "Descrição é obrigatória")
     private String description;
 
-    @Size(max = 500, message = "Link must be at most 500 characters")
+    @Size(max = 500, message = "Link deve ter no máximo 500 caracteres")
     private String link;
 
-    @NotNull(message = "Category is required")
+    @NotNull(message = "Categoria é obrigatória")
     private UUID categoryId;
 
-    @NotNull(message = "Modality is required")
+    @NotNull(message = "Modalidade é obrigatória")
     private EventModality modality;
 
-    @NotNull(message = "Start date is required")
+    @NotNull(message = "Data de início é obrigatória")
     private LocalDateTime startDate;
 
-    @NotNull(message = "Type is required")
+    @NotNull(message = "Tipo é obrigatório")
     private EventType type;
 
-    @Size(max = 500, message = "Cover image URL must be at most 500 characters")
+    @Size(max = 500, message = "URL da imagem de capa deve ter no máximo 500 caracteres")
     private String coverImage;
 }

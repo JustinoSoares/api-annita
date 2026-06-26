@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class VerifyEmailRequest {
 
-    @NotBlank(message = "Verification code is required")
-    @Size(min = 6, max = 6, message = "Verification code must be 6 digits")
+    @NotBlank(message = "Código de verificação é obrigatório")
+    @Size(min = 6, max = 6, message = "Código de verificação deve ter 6 dígitos")
     private String code;
 }

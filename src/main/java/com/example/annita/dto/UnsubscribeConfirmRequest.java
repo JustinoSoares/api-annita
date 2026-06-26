@@ -10,11 +10,11 @@ import lombok.Setter;
 @Setter
 public class UnsubscribeConfirmRequest {
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email é obrigatório")
+    @Email(message = "Formato de email inválido")
     private String email;
 
-    @NotBlank(message = "Verification code is required")
-    @Size(min = 6, max = 6, message = "Verification code must be 6 digits")
+    @NotBlank(message = "Código de verificação é obrigatório")
+    @Size(min = 6, max = 6, message = "Código de verificação deve ter 6 dígitos")
     private String code;
 }

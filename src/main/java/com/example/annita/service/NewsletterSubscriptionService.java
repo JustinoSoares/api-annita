@@ -31,7 +31,7 @@ public class NewsletterSubscriptionService {
 
     public NewsletterSubscriptionResponse subscribe(SubscribeRequest request) {
         if (repository.existsByEmail(request.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already subscribed to the newsletter");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este email já está inscrito na newsletter");
         }
 
         NewsletterSubscription subscription = NewsletterSubscription.builder()
@@ -45,7 +45,7 @@ public class NewsletterSubscriptionService {
 
     public void requestUnsubscribe(String email) {
         NewsletterSubscription subscription = repository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription not found for the provided email"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inscrição não encontrada para o email informado"));
 
         String code = String.format("%06d", new Random().nextInt(999999));
         subscription.setVerificationCode(code);
@@ -57,18 +57,18 @@ public class NewsletterSubscriptionService {
 
     public void confirmUnsubscribe(String email, String code) {
         NewsletterSubscription subscription = repository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription not found for the provided email"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inscrição não encontrada para o email informado"));
 
         if (subscription.getVerificationCode() == null || subscription.getVerificationCodeExpiresAt() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No verification code requested. Please request an unsubscribe code first.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum código de verificação solicitado. Solicite um código de cancelamento primeiro.");
         }
 
         if (LocalDateTime.now().isAfter(subscription.getVerificationCodeExpiresAt())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Verification code has expired. Please request a new one.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código de verificação expirou. Solicite um novo código.");
         }
 
         if (!subscription.getVerificationCode().equals(code)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid verification code.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código de verificação inválido.");
         }
 
         repository.delete(subscription);
