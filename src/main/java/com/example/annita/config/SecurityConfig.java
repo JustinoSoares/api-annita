@@ -70,7 +70,6 @@ public class SecurityConfig {
 
         @Bean
         public JwtDecoder jwtDecoder() {
-                System.out.println("JWT Secret: " + jwtSecret);
                 SecretKey secretKey = new SecretKeySpec(jwtSecret.getBytes(), "HmacSHA256");
                 return NimbusJwtDecoder.withSecretKey(secretKey).build();
         }
@@ -92,9 +91,13 @@ public class SecurityConfig {
                                 .info(new io.swagger.v3.oas.models.info.Info()
                                                 .title("Annita API")
                                                 .version("1.0.0")
-                                                .description("API for Annita Event Platform"))
-                                .addSecurityItem(new io.swagger.v3.oas.models.security.SecurityRequirement()
-                                                .addList("bearerAuth"))
+                                                .description("""
+                                                                API for Annita Event Platform.
+                                                                
+                                                                Authentication is done via JWT Bearer token.
+                                                                The token must be sent in the **Authorization** header as `Bearer <token>`.
+                                                                Never pass the token as a query parameter or in the request body.
+                                                                """))
                                 .components(new io.swagger.v3.oas.models.Components()
                                                 .addSecuritySchemes("bearerAuth",
                                                                 new io.swagger.v3.oas.models.security.SecurityScheme()

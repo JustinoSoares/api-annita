@@ -83,7 +83,7 @@ public class UserService {
         emailService.sendVerificationCode(user.getEmail(), code);
     }
 
-    public void verifyEmail(UUID userId, String code) {
+    public User verifyEmail(UUID userId, String code) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
 
@@ -106,7 +106,7 @@ public class UserService {
         user.setEmailVerified(true);
         user.setVerificationCode(null);
         user.setVerificationCodeExpiresAt(null);
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     public List<UserResponse> getAllUsers() {

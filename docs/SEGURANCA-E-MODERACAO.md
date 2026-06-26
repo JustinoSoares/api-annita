@@ -30,7 +30,9 @@
 | Método | Path | Acesso | Descrição |
 |---|---|---|---|
 | `POST` | `/api/auth/send-verification-code` | Autenticado | Gera código de 6 dígitos e envia por email |
-| `POST` | `/api/auth/verify-email` | Autenticado | Verifica código e marca email como confirmado |
+| `POST` | `/api/auth/verify-email` | Autenticado | Verifica código com o código de 6 dígitos e retorna um novo JWT |
+
+Após verificar o email, a resposta contém um novo token JWT (`{ "token": "..." }`) com `is_email_verified: true`. Este token deve ser enviado no header `Authorization: Bearer <token>` em todas as requisições autenticadas — nunca como parâmetro de query ou body.
 
 O `EmailService` usa SMTP configurável. Se `EMAIL_ENABLED=false`, o código aparece no log do terminal.
 
