@@ -115,6 +115,7 @@ public class EventController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Get an approved event by ID (public)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Event found",
