@@ -1,6 +1,8 @@
 package com.example.annita.service;
 
 import com.example.annita.model.User;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
@@ -31,6 +33,7 @@ public class TokenService {
                 .claim("role", user.getRole().name())
                 .claim("is_active", user.isActive())
                 .build();
-        return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        var header = JwsHeader.with(MacAlgorithm.HS256).build();
+        return this.encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
     }
 }

@@ -64,7 +64,7 @@ public class UserService {
         }
 
         String token = tokenService.generateToken(user);
-        return new LoginResponse(token, user.getUsername(), user.getEmail(), user.getRole().name());
+        return new LoginResponse(token);
     }
 
     public void sendVerificationCode(UUID userId) {
