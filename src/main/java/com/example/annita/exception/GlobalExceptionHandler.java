@@ -39,9 +39,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, String>> handleAuthentication(AuthenticationException ex) {
-        return ResponseEntity
+        /*return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", "Token de autenticação ausente ou inválido."));
+                .body(Map.of("message", "Token de autenticação ausente ou inválido."));*/
+        return null;    
     }
 
     @ExceptionHandler(AccessDeniedException.class)
