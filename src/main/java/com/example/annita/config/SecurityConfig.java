@@ -11,12 +11,16 @@ import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -28,9 +32,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import jakarta.servlet.http.HttpServletResponse;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -64,6 +71,9 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 .anyRequest().authenticated())
                                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                                .exceptionHandling(ex -> ex
+                                        .authenticationEntryPoint(authenticationEntryPoint())
+                                        .accessDeniedHandler(accessDeniedHandler()))
                                 .build();
         }
 
@@ -87,6 +97,28 @@ public class SecurityConfig {
                                 .build();
                 JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
                 return new NimbusJwtEncoder(jwks);
+        }
+
+        @Bean
+        public AuthenticationEntryPoint authenticationEntryPoint() {
+            return (request, response, authException) -> {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                Map<String, String> body = new LinkedHashMap<>();
+                body.put("message", "Token de autenticação ausente ou inválido.");
+                response.getWriter().write(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(body));
+            };
+        }
+
+        @Bean
+        public AccessDeniedHandler accessDeniedHandler() {
+            return (request, response, accessDeniedException) -> {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                Map<String, String> body = new LinkedHashMap<>();
+                body.put("message", "Acesso negado. Você não tem permissão para acessar este recurso.");
+                response.getWriter().write(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(body));
+            };
         }
 
         @Bean
