@@ -29,6 +29,7 @@ public class TokenService {
                 .subject(user.getUsername())
                 .claim("userId", user.getId().toString())
                 .claim("email", user.getEmail())
+                .claim("scope", user.getRole().name())
                 .claim("role", user.getRole().name())
                 .claim("is_active", user.isActive())
                 .claim("is_email_verified", user.isEmailVerified())
