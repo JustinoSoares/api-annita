@@ -3,6 +3,7 @@ package com.example.annita.controller;
 import com.example.annita.dto.LoginRequest;
 import com.example.annita.dto.LoginResponse;
 import com.example.annita.dto.RegisterRequest;
+import com.example.annita.dto.UsernameAvailabilityResponse;
 import com.example.annita.dto.UserResponse;
 import com.example.annita.dto.VerifyEmailRequest;
 import com.example.annita.model.User;
@@ -24,7 +25,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -55,9 +55,9 @@ public class AuthController {
 
     @GetMapping("/check-username")
     @Operation(summary = "Check if username is already taken")
-    public ResponseEntity<Map<String, Boolean>> checkUsername(@RequestParam String username) {
+    public ResponseEntity<UsernameAvailabilityResponse> checkUsername(@RequestParam String username) {
         boolean taken = userService.isUsernameTaken(username);
-        return ResponseEntity.ok(Map.of("available", !taken));
+        return ResponseEntity.ok(new UsernameAvailabilityResponse(!taken));
     }
 
     @PostMapping("/login")
