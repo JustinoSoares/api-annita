@@ -61,6 +61,7 @@ public class SecurityConfig {
                                                                 "/",
                                                                 "/api/auth/register",
                                                                 "/api/auth/login",
+                                                                "/api/auth/check-username",
                                                                 "/api/newsletter/subscribe",
                                                                 "/api/newsletter/unsubscribe/**",
                                                                 "/api/events",
