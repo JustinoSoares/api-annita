@@ -88,7 +88,7 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
-    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
+    //@PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Verify email with code", description = "Verifies the authenticated user's email using the 6-digit code and returns a new JWT token.")
     @ApiResponses({
