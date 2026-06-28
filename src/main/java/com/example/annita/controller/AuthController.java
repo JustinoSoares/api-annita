@@ -74,7 +74,6 @@ public class AuthController {
     }
 
     @PostMapping("/send-verification-code")
-    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Send email verification code", description = "Sends a 6-digit code to the authenticated user's email.")
     @ApiResponses({
