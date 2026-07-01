@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,4 +20,6 @@ public interface EventRepository extends JpaRepository<Event, UUID>, JpaSpecific
     Optional<Event> findByIdAndStatus(UUID id, EventStatus status);
 
     long countByCreatedByIdAndStatus(UUID userId, EventStatus status);
+
+    long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 }
