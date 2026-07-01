@@ -37,6 +37,16 @@ public class EventService {
         this.reportRepository = reportRepository;
     }
 
+    public PageResponse<EventResponse> getEvents(String search, UUID categoryId, EventModality modality, EventType type, EventStatus status, UUID userId, String role, int page, int perPage) {
+        if (userId == null) {
+            return getApproved(search, categoryId, modality, type, page, perPage);
+        }
+        if ("ADMIN".equals(role) || "MODERATOR".equals(role)) {
+            return getAll(search, categoryId, modality, type, status, page, perPage);
+        }
+        return getByUser(userId, page, perPage);
+    }
+
     public EventResponse create(EventRequest request, UUID userId) {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoria não encontrada"));

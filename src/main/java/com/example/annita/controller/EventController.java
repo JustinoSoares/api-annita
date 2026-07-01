@@ -56,20 +56,24 @@ public class EventController {
     }
 
     @GetMapping
-    @Operation(summary = "List approved events publicly with pagination and filters")
+    @Operation(summary = "List events with pagination and filters", description = "Admin/Moderator: all events. Authenticated user: own events. Anonymous: approved events only.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Events retrieved successfully",
                      content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                                         schema = @Schema(implementation = PageResponse.class)))
     })
-    public ResponseEntity<PageResponse<EventResponse>> getApproved(
+    public ResponseEntity<PageResponse<EventResponse>> getEvents(
             @Parameter(description = "Search term to match against title or description") @RequestParam(required = false) String search,
             @Parameter(description = "Filter by category ID") @RequestParam(required = false) UUID categoryId,
             @Parameter(description = "Filter by modality") @RequestParam(required = false) EventModality modality,
             @Parameter(description = "Filter by type") @RequestParam(required = false) EventType type,
+            @Parameter(description = "Filter by status (admin/mod only)") @RequestParam(required = false) EventStatus status,
             @Parameter(description = "Page number (1-indexed)") @RequestParam(defaultValue = "1") int page,
-            @Parameter(description = "Number of items per page") @RequestParam(name = "per_page", defaultValue = "10") int perPage) {
-        PageResponse<EventResponse> response = eventService.getApproved(search, categoryId, modality, type, page, perPage);
+            @Parameter(description = "Number of items per page") @RequestParam(name = "per_page", defaultValue = "10") int perPage,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = jwt != null ? UUID.fromString(jwt.getClaim("userId")) : null;
+        String role = jwt != null ? jwt.getClaimAsString("scope") : null;
+        PageResponse<EventResponse> response = eventService.getEvents(search, categoryId, modality, type, status, userId, role, page, perPage);
         return ResponseEntity.ok(response);
     }
 
