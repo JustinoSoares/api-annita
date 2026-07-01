@@ -3,7 +3,9 @@ package com.example.annita.service;
 import com.example.annita.dto.NewsletterSubscriptionResponse;
 import com.example.annita.dto.PageResponse;
 import com.example.annita.dto.SubscribeRequest;
+import com.example.annita.model.Category;
 import com.example.annita.model.NewsletterSubscription;
+import com.example.annita.repository.CategoryRepository;
 import com.example.annita.repository.NewsletterSubscriptionRepository;
 import com.example.annita.repository.specification.NewsletterSubscriptionSpecifications;
 import org.springframework.data.domain.Page;
@@ -11,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -23,12 +26,15 @@ public class NewsletterSubscriptionService {
 
     private final NewsletterSubscriptionRepository repository;
     private final EmailService emailService;
+    private final CategoryRepository categoryRepository;
 
-    public NewsletterSubscriptionService(NewsletterSubscriptionRepository repository, EmailService emailService) {
+    public NewsletterSubscriptionService(NewsletterSubscriptionRepository repository, EmailService emailService, CategoryRepository categoryRepository) {
         this.repository = repository;
         this.emailService = emailService;
+        this.categoryRepository = categoryRepository;
     }
 
+    @Transactional
     public NewsletterSubscriptionResponse subscribe(SubscribeRequest request) {
         if (repository.existsByEmail(request.getEmail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este email já está inscrito na newsletter");
@@ -38,6 +44,14 @@ public class NewsletterSubscriptionService {
                 .name(request.getName())
                 .email(request.getEmail())
                 .build();
+
+        if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
+            List<Category> categories = categoryRepository.findAllById(request.getCategoryIds());
+            if (categories.size() != request.getCategoryIds().size()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Uma ou mais categorias não encontradas");
+            }
+            subscription.setPreferredCategories(categories);
+        }
 
         NewsletterSubscription saved = repository.save(subscription);
         return new NewsletterSubscriptionResponse(saved);

@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+import java.util.UUID;
+
 @Getter
 @Setter
 public class SubscribeRequest {
@@ -18,4 +21,6 @@ public class SubscribeRequest {
     @Email(message = "Email deve ser um endereço válido")
     @Size(max = 100, message = "Email não pode exceder 100 caracteres")
     private String email;
+
+    private List<UUID> categoryIds;
 }

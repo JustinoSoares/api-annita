@@ -3,6 +3,8 @@ package com.example.annita.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -29,6 +31,14 @@ public class NewsletterSubscription {
 
     @Column(name = "verification_code_expires_at")
     private LocalDateTime verificationCodeExpiresAt;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "tb_newsletter_subscription_categories",
+            joinColumns = @JoinColumn(name = "subscription_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private List<Category> preferredCategories;
 
     @Column(nullable = false, name = "created_at", updatable = false)
     private LocalDateTime createdAt;
