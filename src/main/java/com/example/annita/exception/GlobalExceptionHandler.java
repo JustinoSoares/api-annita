@@ -41,7 +41,32 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleAuthentication(AuthenticationException ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", "Token de autenticação ausente ou inválido."));   
+                .body(Map.of("message", buildAuthErrorMessage(ex)));
+    }
+
+    private String buildAuthErrorMessage(AuthenticationException ex) {
+        String msg = extractMessage(ex);
+        if (msg == null) {
+            return "Token de autenticação ausente. Envie o token no header Authorization: Bearer <token>";
+        }
+        String lower = msg.toLowerCase();
+        if (lower.contains("expired")) {
+            return "Token de autenticação expirado. Faça login novamente.";
+        }
+        if (lower.contains("malformed") || lower.contains("bad jwt")) {
+            return "Token de autenticação mal formatado.";
+        }
+        if (lower.contains("signature")) {
+            return "Token de autenticação inválido ou violado.";
+        }
+        return "Token de autenticação ausente ou inválido. Verifique o header Authorization: Bearer <token>";
+    }
+
+    private String extractMessage(Throwable t) {
+        if (t == null) return null;
+        String msg = t.getMessage();
+        if (msg != null && !msg.isBlank()) return msg;
+        return extractMessage(t.getCause());
     }
 
     @ExceptionHandler(AccessDeniedException.class)

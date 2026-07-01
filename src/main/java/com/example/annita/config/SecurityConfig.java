@@ -32,6 +32,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,9 +106,10 @@ public class SecurityConfig {
             return (request, response, authException) -> {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                String message = buildAuthErrorMessage(authException);
                 Map<String, String> body = new LinkedHashMap<>();
-                body.put("message", "Token de autenticação ausente ou inválido.");
-                response.getWriter().write(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(body));
+                body.put("message", message);
+                response.getWriter().write(new ObjectMapper().writeValueAsString(body));
             };
         }
 
@@ -118,8 +120,33 @@ public class SecurityConfig {
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 Map<String, String> body = new LinkedHashMap<>();
                 body.put("message", "Acesso negado. Você não tem permissão para acessar este recurso.");
-                response.getWriter().write(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(body));
+                response.getWriter().write(new ObjectMapper().writeValueAsString(body));
             };
+        }
+
+        private String buildAuthErrorMessage(AuthenticationException ex) {
+            String msg = extractMessage(ex);
+            if (msg == null) {
+                return "Token de autenticação ausente. Envie o token no header Authorization: Bearer <token>";
+            }
+            String lower = msg.toLowerCase();
+            if (lower.contains("expired")) {
+                return "Token de autenticação expirado. Faça login novamente.";
+            }
+            if (lower.contains("malformed") || lower.contains("bad jwt")) {
+                return "Token de autenticação mal formatado.";
+            }
+            if (lower.contains("signature")) {
+                return "Token de autenticação inválido ou violado.";
+            }
+            return "Token de autenticação ausente ou inválido. Verifique o header Authorization: Bearer <token>";
+        }
+
+        private String extractMessage(Throwable t) {
+            if (t == null) return null;
+            String msg = t.getMessage();
+            if (msg != null && !msg.isBlank()) return msg;
+            return extractMessage(t.getCause());
         }
 
         @Bean
