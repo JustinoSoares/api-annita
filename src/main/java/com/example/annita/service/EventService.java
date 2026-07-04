@@ -66,6 +66,7 @@ public class EventService {
                 .startDate(request.getStartDate())
                 .type(request.getType())
                 .coverImage(request.getCoverImage())
+                .location(request.getLocation())
                 .status(autoApprove ? EventStatus.APPROVED : EventStatus.PENDING)
                 .createdBy(user)
                 .build();
@@ -147,6 +148,7 @@ public class EventService {
         event.setStartDate(request.getStartDate());
         event.setType(request.getType());
         event.setCoverImage(request.getCoverImage());
+        event.setLocation(request.getLocation());
 
         Event updated = eventRepository.save(event);
         return new EventResponse(updated);

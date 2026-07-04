@@ -38,4 +38,7 @@ public class EventRequest {
 
     @Size(max = 500, message = "URL da imagem de capa deve ter no máximo 500 caracteres")
     private String coverImage;
+
+    @Size(max = 500, message = "Localização deve ter no máximo 500 caracteres")
+    private String location;
 }

@@ -29,6 +29,9 @@ public class Event {
     @Column(length = 500)
     private String link;
 
+    @Column(length = 500)
+    private String location;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;

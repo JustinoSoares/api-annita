@@ -21,6 +21,7 @@ public class EventResponse {
     private LocalDateTime startDate;
     private EventType type;
     private String coverImage;
+    private String location;
     private EventStatus status;
     private UUID createdById;
     private String createdByUsername;
@@ -37,6 +38,7 @@ public class EventResponse {
         this.startDate = event.getStartDate();
         this.type = event.getType();
         this.coverImage = event.getCoverImage();
+        this.location = event.getLocation();
         this.status = event.getStatus();
         this.createdById = event.getCreatedBy().getId();
         this.createdByUsername = event.getCreatedBy().getUsername();
