@@ -233,7 +233,6 @@ public class EventService {
                 .event(event)
                 .reportedBy(reporter)
                 .reason(request.getReason())
-                .description(request.getDescription())
                 .build();
 
         reportRepository.save(report);

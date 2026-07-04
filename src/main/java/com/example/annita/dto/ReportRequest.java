@@ -1,7 +1,6 @@
 package com.example.annita.dto;
 
-import com.example.annita.model.ReportReason;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,8 +8,6 @@ import lombok.Setter;
 @Setter
 public class ReportRequest {
 
-    @NotNull(message = "Motivo é obrigatório")
-    private ReportReason reason;
-
-    private String description;
+    @NotBlank(message = "Motivo é obrigatório")
+    private String reason;
 }
