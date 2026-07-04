@@ -59,6 +59,11 @@ public class EventService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado"));
 
+        long pendingCount = eventRepository.countByCreatedByIdAndStatus(userId, EventStatus.PENDING);
+        if (pendingCount > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Você já possui um evento pendente de aprovação. Aguarde a aprovação antes de criar outro.");
+        }
+
         boolean hasReportedEvents = eventRepository.countByCreatedByIdAndStatus(userId, EventStatus.REPORTED) > 0;
         boolean autoApprove = user.getApprovedEventCount() >= 2 && !hasReportedEvents;
 
