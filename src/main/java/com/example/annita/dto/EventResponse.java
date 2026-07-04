@@ -4,6 +4,7 @@ import com.example.annita.model.Event;
 import com.example.annita.model.EventModality;
 import com.example.annita.model.EventStatus;
 import com.example.annita.model.EventType;
+import com.example.annita.model.VoteType;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
@@ -23,6 +24,9 @@ public class EventResponse {
     private String coverImage;
     private String location;
     private EventStatus status;
+    private long upvoteCount;
+    private long downvoteCount;
+    private VoteType userVote;
     private UUID createdById;
     private String createdByUsername;
     private LocalDateTime createdAt;

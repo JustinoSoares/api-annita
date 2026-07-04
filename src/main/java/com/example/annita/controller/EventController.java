@@ -4,6 +4,7 @@ import com.example.annita.dto.EventRequest;
 import com.example.annita.dto.EventResponse;
 import com.example.annita.dto.PageResponse;
 import com.example.annita.dto.ReportRequest;
+import com.example.annita.dto.VoteRequest;
 import com.example.annita.model.EventModality;
 import com.example.annita.model.EventStatus;
 import com.example.annita.model.EventType;
@@ -127,8 +128,9 @@ public class EventController {
                                         schema = @Schema(implementation = EventResponse.class))),
         @ApiResponse(responseCode = "404", description = "Event not found")
     })
-    public ResponseEntity<EventResponse> getById(@PathVariable UUID id) {
-        EventResponse response = eventService.getApprovedById(id);
+    public ResponseEntity<EventResponse> getById(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = jwt != null ? UUID.fromString(jwt.getClaim("userId")) : null;
+        EventResponse response = userId != null ? eventService.getApprovedById(id, userId) : eventService.getApprovedById(id);
         return ResponseEntity.ok(response);
     }
 
@@ -143,8 +145,9 @@ public class EventController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "404", description = "Event not found")
     })
-    public ResponseEntity<EventResponse> getDetailsById(@PathVariable UUID id) {
-        EventResponse response = eventService.getById(id);
+    public ResponseEntity<EventResponse> getDetailsById(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getClaim("userId"));
+        EventResponse response = eventService.getById(id, userId);
         return ResponseEntity.ok(response);
     }
 
@@ -212,6 +215,41 @@ public class EventController {
     })
     public ResponseEntity<EventResponse> reject(@PathVariable UUID id) {
         EventResponse response = eventService.reject(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/vote")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Upvote or downvote an event", description = "Toggle vote: same type removes the vote, different type switches.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Vote registered",
+                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                        schema = @Schema(implementation = EventResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Validation error or event not approved"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Event not found")
+    })
+    public ResponseEntity<EventResponse> vote(@PathVariable UUID id, @Valid @RequestBody VoteRequest request, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getClaim("userId"));
+        EventResponse response = eventService.vote(id, request, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}/vote")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Remove vote from an event", description = "Unvote/remove the authenticated user's vote.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Vote removed",
+                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                        schema = @Schema(implementation = EventResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Event not found")
+    })
+    public ResponseEntity<EventResponse> unvote(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getClaim("userId"));
+        EventResponse response = eventService.unvote(id, userId);
         return ResponseEntity.ok(response);
     }
 

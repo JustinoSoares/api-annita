@@ -4,9 +4,11 @@ import com.example.annita.dto.EventRequest;
 import com.example.annita.dto.EventResponse;
 import com.example.annita.dto.PageResponse;
 import com.example.annita.dto.ReportRequest;
+import com.example.annita.dto.VoteRequest;
 import com.example.annita.model.*;
 import com.example.annita.repository.CategoryRepository;
 import com.example.annita.repository.EventRepository;
+import com.example.annita.repository.EventVoteRepository;
 import com.example.annita.repository.ReportRepository;
 import com.example.annita.repository.UserRepository;
 import com.example.annita.repository.specification.EventSpecifications;
@@ -16,8 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,13 +29,15 @@ public class EventService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final ReportRepository reportRepository;
+    private final EventVoteRepository eventVoteRepository;
 
-    public EventService(EventRepository eventRepository, CategoryRepository categoryRepository, UserRepository userRepository, EmailService emailService, ReportRepository reportRepository) {
+    public EventService(EventRepository eventRepository, CategoryRepository categoryRepository, UserRepository userRepository, EmailService emailService, ReportRepository reportRepository, EventVoteRepository eventVoteRepository) {
         this.eventRepository = eventRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.reportRepository = reportRepository;
+        this.eventVoteRepository = eventVoteRepository;
     }
 
     public PageResponse<EventResponse> getEvents(String search, UUID categoryId, EventModality modality, EventType type, EventStatus status, UUID userId, String role, int page, int perPage) {
@@ -72,7 +75,7 @@ public class EventService {
                 .build();
 
         Event saved = eventRepository.save(event);
-        return new EventResponse(saved);
+        return buildResponse(saved, userId);
     }
 
     public PageResponse<EventResponse> getApproved(String search, UUID categoryId, EventModality modality, EventType type, int page, int perPage) {
@@ -83,7 +86,7 @@ public class EventService {
         Page<Event> eventsPage = eventRepository.findAll(EventSpecifications.approvedAndFiltered(search, categoryId, modality, type), pageable);
 
         List<EventResponse> content = eventsPage.getContent().stream()
-                .map(EventResponse::new)
+                .map(e -> buildResponse(e, null))
                 .collect(Collectors.toList());
 
         return new PageResponse<>(eventsPage, content);
@@ -106,13 +109,25 @@ public class EventService {
     public EventResponse getById(UUID id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
-        return new EventResponse(event);
+        return buildResponse(event, null);
+    }
+
+    public EventResponse getById(UUID id, UUID userId) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
+        return buildResponse(event, userId);
     }
 
     public EventResponse getApprovedById(UUID id) {
         Event event = eventRepository.findByIdAndStatus(id, EventStatus.APPROVED)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
-        return new EventResponse(event);
+        return buildResponse(event, null);
+    }
+
+    public EventResponse getApprovedById(UUID id, UUID userId) {
+        Event event = eventRepository.findByIdAndStatus(id, EventStatus.APPROVED)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
+        return buildResponse(event, userId);
     }
 
     public PageResponse<EventResponse> getByUser(UUID userId, int page, int perPage) {
@@ -151,7 +166,7 @@ public class EventService {
         event.setLocation(request.getLocation());
 
         Event updated = eventRepository.save(event);
-        return new EventResponse(updated);
+        return buildResponse(updated, userId);
     }
 
     public void delete(UUID id, UUID userId) {
@@ -180,7 +195,7 @@ public class EventService {
         creator.setApprovedEventCount(creator.getApprovedEventCount() + 1);
         userRepository.save(creator);
 
-        return new EventResponse(saved);
+        return buildResponse(saved, null);
     }
 
     public EventResponse reject(UUID id) {
@@ -194,7 +209,7 @@ public class EventService {
         event.setStatus(EventStatus.REJECTED);
         Event saved = eventRepository.save(event);
 
-        return new EventResponse(saved);
+        return buildResponse(saved, null);
     }
 
     public EventResponse report(UUID id, ReportRequest request, UUID userId) {
@@ -223,6 +238,59 @@ public class EventService {
         User creator = saved.getCreatedBy();
         emailService.sendEventReportedNotification(creator.getEmail(), saved.getTitle());
 
-        return new EventResponse(saved);
+        return buildResponse(saved, userId);
+    }
+
+    public EventResponse vote(UUID eventId, VoteRequest request, UUID userId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
+
+        if (event.getStatus() != EventStatus.APPROVED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Apenas eventos aprovados podem receber votos");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado"));
+
+        Optional<EventVote> existingVote = eventVoteRepository.findByEventIdAndUserId(eventId, userId);
+
+        if (existingVote.isPresent()) {
+            EventVote vote = existingVote.get();
+            if (vote.getType() == request.getType()) {
+                eventVoteRepository.delete(vote);
+            } else {
+                vote.setType(request.getType());
+                eventVoteRepository.save(vote);
+            }
+        } else {
+            EventVote vote = EventVote.builder()
+                    .event(event)
+                    .user(user)
+                    .type(request.getType())
+                    .build();
+            eventVoteRepository.save(vote);
+        }
+
+        return buildResponse(event, userId);
+    }
+
+    public EventResponse unvote(UUID eventId, UUID userId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
+
+        eventVoteRepository.deleteByEventIdAndUserId(eventId, userId);
+
+        return buildResponse(event, userId);
+    }
+
+    private EventResponse buildResponse(Event event, UUID userId) {
+        EventResponse response = new EventResponse(event);
+        response.setUpvoteCount(eventVoteRepository.countByEventIdAndType(event.getId(), VoteType.UPVOTE));
+        response.setDownvoteCount(eventVoteRepository.countByEventIdAndType(event.getId(), VoteType.DOWNVOTE));
+        if (userId != null) {
+            eventVoteRepository.findByEventIdAndUserId(event.getId(), userId)
+                    .ifPresent(vote -> response.setUserVote(vote.getType()));
+        }
+        return response;
     }
 }
