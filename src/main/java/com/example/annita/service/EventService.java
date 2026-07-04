@@ -30,14 +30,16 @@ public class EventService {
     private final EmailService emailService;
     private final ReportRepository reportRepository;
     private final EventVoteRepository eventVoteRepository;
+    private final NotificationService notificationService;
 
-    public EventService(EventRepository eventRepository, CategoryRepository categoryRepository, UserRepository userRepository, EmailService emailService, ReportRepository reportRepository, EventVoteRepository eventVoteRepository) {
+    public EventService(EventRepository eventRepository, CategoryRepository categoryRepository, UserRepository userRepository, EmailService emailService, ReportRepository reportRepository, EventVoteRepository eventVoteRepository, NotificationService notificationService) {
         this.eventRepository = eventRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.reportRepository = reportRepository;
         this.eventVoteRepository = eventVoteRepository;
+        this.notificationService = notificationService;
     }
 
     public PageResponse<EventResponse> getEvents(String search, UUID categoryId, EventModality modality, EventType type, EventStatus status, UUID userId, String role, int page, int perPage) {
@@ -195,6 +197,8 @@ public class EventService {
         creator.setApprovedEventCount(creator.getApprovedEventCount() + 1);
         userRepository.save(creator);
 
+        notificationService.create(creator, saved, "Seu evento \"" + saved.getTitle() + "\" foi aprovado!");
+
         return buildResponse(saved, null);
     }
 
@@ -208,6 +212,8 @@ public class EventService {
 
         event.setStatus(EventStatus.REJECTED);
         Event saved = eventRepository.save(event);
+
+        notificationService.create(saved.getCreatedBy(), saved, "Seu evento \"" + saved.getTitle() + "\" foi rejeitado.");
 
         return buildResponse(saved, null);
     }
@@ -232,11 +238,15 @@ public class EventService {
 
         reportRepository.save(report);
 
-        event.setStatus(EventStatus.REPORTED);
-        Event saved = eventRepository.save(event);
-
-        User creator = saved.getCreatedBy();
-        emailService.sendEventReportedNotification(creator.getEmail(), saved.getTitle());
+        long reportCount = reportRepository.countByEventId(id);
+        Event saved = event;
+        if (reportCount >= 3) {
+            event.setStatus(EventStatus.REPORTED);
+            saved = eventRepository.save(event);
+            User creator = saved.getCreatedBy();
+            emailService.sendEventReportedNotification(creator.getEmail(), saved.getTitle());
+            notificationService.create(creator, saved, "Seu evento \"" + saved.getTitle() + "\" foi removido por denúncias.");
+        }
 
         return buildResponse(saved, userId);
     }
