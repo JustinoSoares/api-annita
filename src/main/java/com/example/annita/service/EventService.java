@@ -65,7 +65,7 @@ public class EventService {
         }
 
         boolean hasReportedEvents = eventRepository.countByCreatedByIdAndStatus(userId, EventStatus.REPORTED) > 0;
-        boolean autoApprove = user.getApprovedEventCount() >= 2 && !hasReportedEvents;
+        boolean autoApprove = user.getApprovedEventCount() >= 1 && !hasReportedEvents;
 
         Event event = Event.builder()
                 .title(request.getTitle())
