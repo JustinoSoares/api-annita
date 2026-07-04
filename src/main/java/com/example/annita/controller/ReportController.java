@@ -48,4 +48,17 @@ public class ReportController {
         PageResponse<ReportResponse> response = reportService.getReportsByUser(userId, page, perPage);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_MODERATOR')")
+    @Operation(summary = "Remove a report", description = "Accessible only by ADMIN or MODERATOR. If the event had 3+ reports and now has fewer than 3, it returns to approved.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Report removed successfully"),
+        @ApiResponse(responseCode = "403", description = "Forbidden — requires ADMIN or MODERATOR role"),
+        @ApiResponse(responseCode = "404", description = "Report not found")
+    })
+    public ResponseEntity<Void> removeReport(@PathVariable UUID id) {
+        reportService.removeReport(id);
+        return ResponseEntity.noContent().build();
+    }
 }
