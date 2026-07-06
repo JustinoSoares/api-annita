@@ -135,8 +135,7 @@ public class EventController {
     }
 
     @GetMapping("/{id}/details")
-    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
-    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Get full event details by ID (authenticated users)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Event details retrieved",
