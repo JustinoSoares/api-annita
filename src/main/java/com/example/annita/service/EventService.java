@@ -43,13 +43,10 @@ public class EventService {
     }
 
     public PageResponse<EventResponse> getEvents(String search, UUID categoryId, EventModality modality, EventType type, EventStatus status, UUID userId, String role, int page, int perPage) {
-        if (userId == null) {
-            return getApproved(search, categoryId, modality, type, page, perPage);
-        }
         if ("ADMIN".equals(role) || "MODERATOR".equals(role)) {
-            return getAll(search, categoryId, modality, type, status, page, perPage);
+            return getAll(search, categoryId, modality, type, status, page, perPage, userId);
         }
-        return getByUser(userId, page, perPage);
+        return getApproved(search, categoryId, modality, type, page, perPage, userId);
     }
 
     public EventResponse create(EventRequest request, UUID userId) {
@@ -86,6 +83,10 @@ public class EventService {
     }
 
     public PageResponse<EventResponse> getApproved(String search, UUID categoryId, EventModality modality, EventType type, int page, int perPage) {
+        return getApproved(search, categoryId, modality, type, page, perPage, null);
+    }
+
+    public PageResponse<EventResponse> getApproved(String search, UUID categoryId, EventModality modality, EventType type, int page, int perPage, UUID userId) {
         int pageIndex = Math.max(0, page - 1);
         int size = Math.max(1, perPage);
         PageRequest pageable = PageRequest.of(pageIndex, size);
@@ -93,13 +94,17 @@ public class EventService {
         Page<Event> eventsPage = eventRepository.findAll(EventSpecifications.approvedAndFiltered(search, categoryId, modality, type), pageable);
 
         List<EventResponse> content = eventsPage.getContent().stream()
-                .map(e -> buildResponse(e, null))
+                .map(e -> buildResponse(e, userId))
                 .collect(Collectors.toList());
 
         return new PageResponse<>(eventsPage, content);
     }
 
     public PageResponse<EventResponse> getAll(String search, UUID categoryId, EventModality modality, EventType type, EventStatus status, int page, int perPage) {
+        return getAll(search, categoryId, modality, type, status, page, perPage, null);
+    }
+
+    public PageResponse<EventResponse> getAll(String search, UUID categoryId, EventModality modality, EventType type, EventStatus status, int page, int perPage, UUID userId) {
         int pageIndex = Math.max(0, page - 1);
         int size = Math.max(1, perPage);
         PageRequest pageable = PageRequest.of(pageIndex, size);
@@ -107,7 +112,7 @@ public class EventService {
         Page<Event> eventsPage = eventRepository.findAll(EventSpecifications.allFiltered(search, categoryId, modality, type, status), pageable);
 
         List<EventResponse> content = eventsPage.getContent().stream()
-                .map(EventResponse::new)
+                .map(e -> buildResponse(e, userId))
                 .collect(Collectors.toList());
 
         return new PageResponse<>(eventsPage, content);
@@ -138,6 +143,10 @@ public class EventService {
     }
 
     public PageResponse<EventResponse> getByUser(UUID userId, int page, int perPage) {
+        return getByUser(userId, page, perPage, null);
+    }
+
+    public PageResponse<EventResponse> getByUser(UUID userId, int page, int perPage, UUID viewerId) {
         int pageIndex = Math.max(0, page - 1);
         int size = Math.max(1, perPage);
         PageRequest pageable = PageRequest.of(pageIndex, size);
@@ -145,7 +154,7 @@ public class EventService {
         Page<Event> eventsPage = eventRepository.findByCreatedById(userId, pageable);
 
         List<EventResponse> content = eventsPage.getContent().stream()
-                .map(EventResponse::new)
+                .map(e -> buildResponse(e, viewerId))
                 .collect(Collectors.toList());
 
         return new PageResponse<>(eventsPage, content);

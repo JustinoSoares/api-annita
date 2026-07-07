@@ -95,8 +95,10 @@ public class EventController {
             @Parameter(description = "Filter by type") @RequestParam(required = false) EventType type,
             @Parameter(description = "Filter by status") @RequestParam(required = false) EventStatus status,
             @Parameter(description = "Page number (1-indexed)") @RequestParam(defaultValue = "1") int page,
-            @Parameter(description = "Number of items per page") @RequestParam(name = "per_page", defaultValue = "10") int perPage) {
-        PageResponse<EventResponse> response = eventService.getAll(search, categoryId, modality, type, status, page, perPage);
+            @Parameter(description = "Number of items per page") @RequestParam(name = "per_page", defaultValue = "10") int perPage,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getClaim("userId"));
+        PageResponse<EventResponse> response = eventService.getAll(search, categoryId, modality, type, status, page, perPage, userId);
         return ResponseEntity.ok(response);
     }
 
@@ -115,7 +117,7 @@ public class EventController {
             @Parameter(description = "Number of items per page") @RequestParam(name = "per_page", defaultValue = "10") int perPage,
             @AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getClaim("userId"));
-        PageResponse<EventResponse> response = eventService.getByUser(userId, page, perPage);
+        PageResponse<EventResponse> response = eventService.getByUser(userId, page, perPage, userId);
         return ResponseEntity.ok(response);
     }
 
