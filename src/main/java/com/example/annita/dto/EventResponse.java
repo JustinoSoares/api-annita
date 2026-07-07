@@ -29,6 +29,7 @@ public class EventResponse {
     private VoteType userVote;
     private UUID createdById;
     private String createdByUsername;
+    private String createdByCompanyName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -46,6 +47,7 @@ public class EventResponse {
         this.status = event.getStatus();
         this.createdById = event.getCreatedBy().getId();
         this.createdByUsername = event.getCreatedBy().getUsername();
+        this.createdByCompanyName = event.getCreatedBy().getCompanyName();
         this.createdAt = event.getCreatedAt();
         this.updatedAt = event.getUpdatedAt();
     }

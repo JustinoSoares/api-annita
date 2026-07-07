@@ -1,5 +1,6 @@
 package com.example.annita.dto;
 
+import com.example.annita.model.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -24,4 +25,16 @@ public class RegisterRequest {
     private String password;
 
     private boolean receiveNotifications = true;
+
+    private UserRole role = UserRole.CONTRIBUTOR;
+
+    private String companyName;
+
+    private String companyNif;
+
+    private String companyPhone;
+
+    private String companyAddress;
+
+    private String companyWebsite;
 }

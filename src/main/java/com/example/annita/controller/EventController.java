@@ -40,9 +40,9 @@ public class EventController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN', 'SCOPE_COMPANY')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Create a new event", description = "Accessible by CONTRIBUTOR, MODERATOR, and ADMIN roles.")
+    @Operation(summary = "Create a new event", description = "Accessible by CONTRIBUTOR, MODERATOR, ADMIN, and COMPANY roles.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Event created successfully",
                      content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -103,7 +103,7 @@ public class EventController {
     }
 
     @GetMapping("/my")
-    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN', 'SCOPE_COMPANY')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "List events created by the authenticated user")
     @ApiResponses({
@@ -153,7 +153,7 @@ public class EventController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN', 'SCOPE_COMPANY')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Update an event", description = "Accessible by the owner, MODERATOR, or ADMIN.")
     @ApiResponses({
@@ -172,7 +172,7 @@ public class EventController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN', 'SCOPE_COMPANY')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Delete an event", description = "Accessible by the owner, MODERATOR, or ADMIN.")
     @ApiResponses({
@@ -220,7 +220,7 @@ public class EventController {
     }
 
     @PostMapping("/{id}/vote")
-    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN', 'SCOPE_COMPANY')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Upvote or downvote an event", description = "Toggle vote: same type removes the vote, different type switches.")
     @ApiResponses({
@@ -238,7 +238,7 @@ public class EventController {
     }
 
     @DeleteMapping("/{id}/vote")
-    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN', 'SCOPE_COMPANY')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Remove vote from an event", description = "Unvote/remove the authenticated user's vote.")
     @ApiResponses({
@@ -255,7 +255,7 @@ public class EventController {
     }
 
     @PostMapping("/{id}/report")
-    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN', 'SCOPE_COMPANY')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Report an approved event", description = "Accessible by any authenticated user.")
     @ApiResponses({

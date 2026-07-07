@@ -17,6 +17,11 @@ public class UserResponse {
     private boolean isActive;
     private boolean isEmailVerified;
     private boolean receiveNotifications;
+    private String companyName;
+    private String companyNif;
+    private String companyPhone;
+    private String companyAddress;
+    private String companyWebsite;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -28,6 +33,11 @@ public class UserResponse {
         this.isActive = user.isActive();
         this.isEmailVerified = user.isEmailVerified();
         this.receiveNotifications = user.isReceiveNotifications();
+        this.companyName = user.getCompanyName();
+        this.companyNif = user.getCompanyNif();
+        this.companyPhone = user.getCompanyPhone();
+        this.companyAddress = user.getCompanyAddress();
+        this.companyWebsite = user.getCompanyWebsite();
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
     }

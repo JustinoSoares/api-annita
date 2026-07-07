@@ -2,6 +2,7 @@ package com.example.annita.service;
 
 import com.example.annita.dto.*;
 import com.example.annita.model.User;
+import com.example.annita.model.UserRole;
 import com.example.annita.repository.UserRepository;
 import com.example.annita.repository.specification.UserSpecifications;
 import org.springframework.http.HttpStatus;
@@ -42,15 +43,28 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este email já está cadastrado");
         }
 
-        User user = User.builder()
+        UserRole role = request.getRole() != null ? request.getRole() : UserRole.CONTRIBUTOR;
+
+        if (role == UserRole.COMPANY && request.getCompanyName() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome da empresa é obrigatório para contas do tipo empresa");
+        }
+
+        User.UserBuilder builder = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(com.example.annita.model.UserRole.CONTRIBUTOR)
-                .receiveNotifications(request.isReceiveNotifications())
-                .build();
+                .role(role)
+                .receiveNotifications(request.isReceiveNotifications());
 
-        User savedUser = userRepository.save(user);
+        if (role == UserRole.COMPANY) {
+            builder.companyName(request.getCompanyName())
+                    .companyNif(request.getCompanyNif())
+                    .companyPhone(request.getCompanyPhone())
+                    .companyAddress(request.getCompanyAddress())
+                    .companyWebsite(request.getCompanyWebsite());
+        }
+
+        User savedUser = userRepository.save(builder.build());
         return new UserResponse(savedUser);
     }
 

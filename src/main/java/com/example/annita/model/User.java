@@ -51,6 +51,21 @@ public class User {
     @Builder.Default
     private int approvedEventCount = 0;
 
+    @Column(name = "company_name", length = 200)
+    private String companyName;
+
+    @Column(name = "company_nif", length = 20)
+    private String companyNif;
+
+    @Column(name = "company_phone", length = 20)
+    private String companyPhone;
+
+    @Column(name = "company_address", length = 300)
+    private String companyAddress;
+
+    @Column(name = "company_website", length = 200)
+    private String companyWebsite;
+
     @Column(name = "verification_code", length = 6)
     private String verificationCode;
 
