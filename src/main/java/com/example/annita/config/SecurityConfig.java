@@ -66,6 +66,8 @@ public class SecurityConfig {
                                                                 "/api/newsletter/subscribe",
                                                                 "/api/newsletter/unsubscribe/**",
                                                                 "/api/events",
+                                                                "/api/categories",
+                                                                "/api/categories/**",
                                                                 "/v3/api-docs/**",
                                                                 "/swagger-ui/**",
                                                                 "/swagger-ui.html",
