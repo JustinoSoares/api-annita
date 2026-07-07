@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     boolean existsByEmail(String email);
 
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    long countByIsActiveTrue();
 }
