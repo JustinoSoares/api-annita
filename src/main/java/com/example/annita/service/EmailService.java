@@ -22,7 +22,7 @@ public class EmailService {
 
     public void sendVerificationCode(String to, String code) {
         String subject = "Annita — Código de verificação";
-        String body = "O seu código de verificação é: " + code + "\n\nVálido por 15 minutos.";
+        String body = "O seu código de verificação é: " + code + "\n\nEste código é válido por 15 minutos.";
 
         if (enabled && mailSender != null) {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -37,7 +37,7 @@ public class EmailService {
 
     public void sendEventReportedNotification(String to, String eventTitle) {
         String subject = "Annita — Evento denunciado";
-        String body = "O seu evento \"" + eventTitle + "\" foi denunciado e removido da plataforma.";
+        String body = "O seu evento \"" + eventTitle + "\" foi removido da plataforma após receber denúncias.";
 
         if (enabled && mailSender != null) {
             SimpleMailMessage message = new SimpleMailMessage();

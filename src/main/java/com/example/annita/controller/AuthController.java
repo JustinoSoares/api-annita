@@ -41,7 +41,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @Operation(summary = "Register a new user", description = "Registers a new user with the CONTRIBUTOR role.")
+    @Operation(summary = "Register a new user or company", description = "Registers a new user. For CONTRIBUTOR accounts, send only username/email/password. For COMPANY accounts, set role=\"COMPANY\" and provide companyName (required) plus companyNif, companyPhone, companyAddress, companyWebsite (optional).")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "User registered successfully",
                      content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,

@@ -119,7 +119,7 @@ public class SecurityConfig {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 Map<String, String> body = new LinkedHashMap<>();
-                body.put("message", "Acesso negado. Você não tem permissão para acessar este recurso.");
+                body.put("message", "Você não tem permissão para aceder a esta funcionalidade.");
                 response.getWriter().write(new ObjectMapper().writeValueAsString(body));
             };
         }
@@ -127,19 +127,19 @@ public class SecurityConfig {
         private String buildAuthErrorMessage(AuthenticationException ex) {
             String msg = extractMessage(ex);
             if (msg == null) {
-                return "Token de autenticação ausente. Envie o token no header Authorization: Bearer <token>";
+                return "A sua sessão expirou. Faça login novamente.";
             }
             String lower = msg.toLowerCase();
             if (lower.contains("expired")) {
-                return "Token de autenticação expirado. Faça login novamente.";
+                return "A sua sessão expirou. Faça login novamente.";
             }
             if (lower.contains("malformed") || lower.contains("bad jwt")) {
-                return "Token de autenticação mal formatado.";
+                return "O seu token de acesso é inválido. Faça login novamente.";
             }
             if (lower.contains("signature")) {
-                return "Token de autenticação inválido ou violado.";
+                return "O seu token de acesso é inválido. Faça login novamente.";
             }
-            return "Token de autenticação ausente ou inválido. Verifique o header Authorization: Bearer <token>";
+            return "A sua sessão expirou ou é inválida. Faça login novamente.";
         }
 
         private String extractMessage(Throwable t) {

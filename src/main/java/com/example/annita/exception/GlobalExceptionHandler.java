@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleResponseStatus(ResponseStatusException ex) {
         String reason = ex.getReason();
         if (reason == null || reason.isBlank()) {
-            reason = "Erro na requisição.";
+            reason = "Ocorreu um erro. Tente novamente.";
         }
         return ResponseEntity
                 .status(ex.getStatusCode())
@@ -47,19 +47,19 @@ public class GlobalExceptionHandler {
     private String buildAuthErrorMessage(AuthenticationException ex) {
         String msg = extractMessage(ex);
         if (msg == null) {
-            return "Token de autenticação ausente. Envie o token no header Authorization: Bearer <token>";
+            return "A sua sessão expirou. Faça login novamente.";
         }
         String lower = msg.toLowerCase();
         if (lower.contains("expired")) {
-            return "Token de autenticação expirado. Faça login novamente.";
+            return "A sua sessão expirou. Faça login novamente.";
         }
         if (lower.contains("malformed") || lower.contains("bad jwt")) {
-            return "Token de autenticação mal formatado.";
+            return "O seu token de acesso é inválido. Faça login novamente.";
         }
         if (lower.contains("signature")) {
-            return "Token de autenticação inválido ou violado.";
+            return "O seu token de acesso é inválido. Faça login novamente.";
         }
-        return "Token de autenticação ausente ou inválido. Verifique o header Authorization: Bearer <token>";
+        return "A sua sessão expirou ou é inválida. Faça login novamente.";
     }
 
     private String extractMessage(Throwable t) {
@@ -73,7 +73,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .body(Map.of("message", "Acesso negado. Você não tem permissão para acessar este recurso."));
+                .body(Map.of("message", "Você não tem permissão para aceder a esta funcionalidade."));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -90,12 +90,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleMethodValidation(HandlerMethodValidationException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("message", "Dados inválidos. Verifique os campos enviados."));
+                .body(Map.of("message", "Verifique os dados enviados e tente novamente."));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, String>> handleNotReadable(HttpMessageNotReadableException ex) {
-        String msg = "Corpo da requisição inválido. Verifique o formato dos dados enviados.";
+        String msg = "Formato dos dados inválido. Verifique e tente novamente.";
         if (ex.getCause() instanceof InvalidFormatException ife) {
             String fieldName = ife.getPath().stream()
                     .map(ref -> ref.getFieldName())
@@ -103,7 +103,7 @@ public class GlobalExceptionHandler {
                     .findFirst()
                     .orElse(null);
             if (fieldName != null) {
-                msg = "O campo '" + fieldName + "' possui um valor inválido.";
+                msg = "O campo '" + fieldName + "' tem um valor inválido.";
             }
         }
         return ResponseEntity
@@ -115,14 +115,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleMissingParam(MissingServletRequestParameterException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("message", "O parâmetro '" + ex.getParameterName() + "' é obrigatório."));
+                .body(Map.of("message", "O campo '" + ex.getParameterName() + "' é obrigatório."));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrity(DataIntegrityViolationException ex) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .body(Map.of("message", "Operação não permitida. Este registro possui dependências no sistema."));
+                .body(Map.of("message", "Não foi possível concluir a operação. Tente novamente."));
     }
 
     @ExceptionHandler(MailException.class)
@@ -130,7 +130,7 @@ public class GlobalExceptionHandler {
         log.error("Erro ao enviar email", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Erro ao enviar email. Verifique a configuração do servidor de email."));
+                .body(Map.of("message", "Não foi possível enviar o email. Tente novamente mais tarde."));
     }
 
     @ExceptionHandler(Exception.class)
@@ -138,6 +138,6 @@ public class GlobalExceptionHandler {
         log.error("Erro interno não tratado", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Erro interno do servidor. Tente novamente mais tarde."));
+                .body(Map.of("message", "Ocorreu um erro inesperado. Tente novamente mais tarde."));
     }
 }

@@ -45,8 +45,14 @@ public class UserService {
 
         UserRole role = request.getRole() != null ? request.getRole() : UserRole.CONTRIBUTOR;
 
-        if (role == UserRole.COMPANY && request.getCompanyName() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome da empresa é obrigatório para contas do tipo empresa");
+        if (role == UserRole.COMPANY) {
+            if (request.getCompanyName() == null || request.getCompanyName().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome da empresa é obrigatório para contas do tipo empresa");
+            }
+        } else if (request.getCompanyName() != null || request.getCompanyNif() != null
+                || request.getCompanyPhone() != null || request.getCompanyAddress() != null
+                || request.getCompanyWebsite() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Os dados de empresa só podem ser preenchidos para contas do tipo empresa");
         }
 
         User.UserBuilder builder = User.builder()
@@ -74,7 +80,7 @@ public class UserService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nome de usuário ou senha inválidos"));
 
         if (!user.isActive()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Esta conta está inativa/bloqueada");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Esta conta está bloqueada. Entre em contacto com o suporte.");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -110,15 +116,15 @@ public class UserService {
         }
 
         if (user.getVerificationCode() == null || user.getVerificationCodeExpiresAt() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum código de verificação solicitado. Solicite um código primeiro.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ainda não pediu um código de verificação. Peça um código primeiro.");
         }
 
         if (LocalDateTime.now().isAfter(user.getVerificationCodeExpiresAt())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código de verificação expirou. Solicite um novo código.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O código de verificação expirou. Peça um novo código.");
         }
 
         if (!user.getVerificationCode().equals(code)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código de verificação inválido.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O código de verificação está incorreto.");
         }
 
         user.setEmailVerified(true);

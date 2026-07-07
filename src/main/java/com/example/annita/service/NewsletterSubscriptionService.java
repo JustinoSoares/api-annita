@@ -59,7 +59,7 @@ public class NewsletterSubscriptionService {
 
     public void requestUnsubscribe(String email) {
         NewsletterSubscription subscription = repository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inscrição não encontrada para o email informado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Não foi encontrada uma inscrição com este email"));
 
         String code = String.format("%06d", new Random().nextInt(999999));
         subscription.setVerificationCode(code);
@@ -71,18 +71,18 @@ public class NewsletterSubscriptionService {
 
     public void confirmUnsubscribe(String email, String code) {
         NewsletterSubscription subscription = repository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inscrição não encontrada para o email informado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Não foi encontrada uma inscrição com este email"));
 
         if (subscription.getVerificationCode() == null || subscription.getVerificationCodeExpiresAt() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum código de verificação solicitado. Solicite um código de cancelamento primeiro.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ainda não pediu um código de verificação. Peça um código primeiro.");
         }
 
         if (LocalDateTime.now().isAfter(subscription.getVerificationCodeExpiresAt())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código de verificação expirou. Solicite um novo código.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O código de verificação expirou. Peça um novo código.");
         }
 
         if (!subscription.getVerificationCode().equals(code)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código de verificação inválido.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O código de verificação está incorreto.");
         }
 
         repository.delete(subscription);

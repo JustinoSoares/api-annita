@@ -165,7 +165,7 @@ public class EventService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
         if (!event.getCreatedBy().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você só pode editar seus próprios eventos");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Só pode editar os seus próprios eventos");
         }
 
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -190,7 +190,7 @@ public class EventService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
         if (!event.getCreatedBy().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você só pode excluir seus próprios eventos");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Só pode excluir os seus próprios eventos");
         }
 
         eventRepository.deleteById(id);

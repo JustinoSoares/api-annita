@@ -50,7 +50,7 @@ public class NotificationService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notificação não encontrada"));
 
         if (!notification.getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você só pode marcar suas próprias notificações");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Só pode marcar as suas próprias notificações");
         }
 
         notification.setRead(true);
