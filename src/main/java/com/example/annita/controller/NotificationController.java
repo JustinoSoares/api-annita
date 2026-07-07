@@ -2,6 +2,7 @@ package com.example.annita.controller;
 
 import com.example.annita.dto.NotificationResponse;
 import com.example.annita.dto.PageResponse;
+import com.example.annita.dto.UnreadCountResponse;
 import com.example.annita.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,7 +18,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -53,10 +53,10 @@ public class NotificationController {
     @GetMapping("/unread-count")
     @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN')")
     @Operation(summary = "Get unread notification count for the authenticated user")
-    public ResponseEntity<Map<String, Long>> getUnreadCount(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<UnreadCountResponse> getUnreadCount(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getClaim("userId"));
         long count = notificationService.getUnreadCount(userId);
-        return ResponseEntity.ok(Map.of("count", count));
+        return ResponseEntity.ok(new UnreadCountResponse(count));
     }
 
     @PutMapping("/{id}/read")
