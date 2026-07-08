@@ -174,16 +174,17 @@ public class EventController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN', 'SCOPE_COMPANY')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Delete an event", description = "Accessible by the owner, MODERATOR, or ADMIN.")
+    @Operation(summary = "Delete an event", description = "Owner deletes own event. MODERATOR and ADMIN can delete any event.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Event deleted successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden — not the owner, MODERATOR, or ADMIN"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Event not found")
     })
     public ResponseEntity<Void> delete(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getClaim("userId"));
-        eventService.delete(id, userId);
+        String role = jwt.getClaimAsString("scope");
+        eventService.delete(id, userId, role);
         return ResponseEntity.noContent().build();
     }
 

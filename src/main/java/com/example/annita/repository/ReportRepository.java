@@ -17,4 +17,6 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
     long countByEventId(UUID eventId);
 
     Page<Report> findByReportedById(UUID userId, Pageable pageable);
+
+    void deleteByEventId(UUID eventId);
 }

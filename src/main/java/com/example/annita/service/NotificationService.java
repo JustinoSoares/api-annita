@@ -74,6 +74,11 @@ public class NotificationService {
         } while (page.hasNext());
     }
 
+    @Transactional
+    public void deleteByEventId(UUID eventId) {
+        notificationRepository.deleteByEventId(eventId);
+    }
+
     public void create(User user, Event event, String message) {
         Notification notification = Notification.builder()
                 .user(user)

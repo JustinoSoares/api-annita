@@ -24,4 +24,6 @@ public interface EventVoteRepository extends JpaRepository<EventVote, UUID> {
     List<Object[]> countByEventIdInGroupByType(@Param("eventIds") List<UUID> eventIds);
 
     void deleteByEventIdAndUserId(UUID eventId, UUID userId);
+
+    void deleteByEventId(UUID eventId);
 }

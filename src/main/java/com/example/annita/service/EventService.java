@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
@@ -185,14 +186,19 @@ public class EventService {
         return buildResponse(updated, userId);
     }
 
-    public void delete(UUID id, UUID userId) {
+    @Transactional
+    public void delete(UUID id, UUID userId, String role) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
-        if (!event.getCreatedBy().getId().equals(userId)) {
+        boolean isModeratorOrAdmin = "MODERATOR".equals(role) || "ADMIN".equals(role);
+        if (!event.getCreatedBy().getId().equals(userId) && !isModeratorOrAdmin) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Só pode excluir os seus próprios eventos");
         }
 
+        eventVoteRepository.deleteByEventId(id);
+        reportRepository.deleteByEventId(id);
+        notificationService.deleteByEventId(id);
         eventRepository.deleteById(id);
     }
 
