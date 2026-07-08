@@ -29,7 +29,6 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(nullable = false)
     @Builder.Default
@@ -50,6 +49,9 @@ public class User {
     @Column(nullable = false, name = "approved_event_count")
     @Builder.Default
     private int approvedEventCount = 0;
+
+    @Column(name = "google_id", unique = true)
+    private String googleId;
 
     @Column(name = "company_name", length = 200)
     private String companyName;

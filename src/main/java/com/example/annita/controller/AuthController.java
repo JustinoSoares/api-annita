@@ -1,5 +1,6 @@
 package com.example.annita.controller;
 
+import com.example.annita.dto.GoogleLoginRequest;
 import com.example.annita.dto.LoginRequest;
 import com.example.annita.dto.LoginResponse;
 import com.example.annita.dto.RegisterRequest;
@@ -7,6 +8,7 @@ import com.example.annita.dto.UsernameAvailabilityResponse;
 import com.example.annita.dto.UserResponse;
 import com.example.annita.dto.VerifyEmailRequest;
 import com.example.annita.model.User;
+import com.example.annita.service.GoogleAuthService;
 import com.example.annita.service.TokenService;
 import com.example.annita.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,10 +36,12 @@ public class AuthController {
 
     private final UserService userService;
     private final TokenService tokenService;
+    private final GoogleAuthService googleAuthService;
 
-    public AuthController(UserService userService, TokenService tokenService) {
+    public AuthController(UserService userService, TokenService tokenService, GoogleAuthService googleAuthService) {
         this.userService = userService;
         this.tokenService = tokenService;
+        this.googleAuthService = googleAuthService;
     }
 
     @PostMapping("/register")
@@ -70,6 +74,19 @@ public class AuthController {
     })
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = userService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/google")
+    @Operation(summary = "Login with Google", description = "Authenticates using a Google ID token. If the email already exists, links the Google account. If not, creates a new user.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Login successful",
+                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                        schema = @Schema(implementation = LoginResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Invalid Google token")
+    })
+    public ResponseEntity<LoginResponse> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        LoginResponse response = googleAuthService.authenticate(request.getIdToken());
         return ResponseEntity.ok(response);
     }
 
