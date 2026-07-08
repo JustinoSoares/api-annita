@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -86,6 +87,57 @@ public class NewsletterSubscriptionService {
         }
 
         repository.delete(subscription);
+    }
+
+    public void sendUpdateCode(String email) {
+        NewsletterSubscription subscription = repository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Não foi encontrada uma inscrição com este email"));
+
+        String code = String.format("%06d", new Random().nextInt(999999));
+        subscription.setVerificationCode(code);
+        subscription.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+
+        repository.save(subscription);
+        emailService.sendVerificationCode(email, code);
+    }
+
+    @Transactional
+    public NewsletterSubscriptionResponse confirmUpdate(String email, String code, String name, List<UUID> categoryIds) {
+        NewsletterSubscription subscription = repository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Não foi encontrada uma inscrição com este email"));
+
+        if (subscription.getVerificationCode() == null || subscription.getVerificationCodeExpiresAt() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ainda não pediu um código de verificação. Peça um código primeiro.");
+        }
+
+        if (LocalDateTime.now().isAfter(subscription.getVerificationCodeExpiresAt())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O código de verificação expirou. Peça um novo código.");
+        }
+
+        if (!subscription.getVerificationCode().equals(code)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O código de verificação está incorreto.");
+        }
+
+        subscription.setName(name);
+        subscription.setVerificationCode(null);
+        subscription.setVerificationCodeExpiresAt(null);
+
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            List<Category> categories = categoryRepository.findAllById(categoryIds);
+            if (categories.size() != categoryIds.size()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Uma ou mais categorias não encontradas");
+            }
+            subscription.setPreferredCategories(categories);
+        } else {
+            subscription.setPreferredCategories(null);
+        }
+
+        NewsletterSubscription saved = repository.save(subscription);
+        return new NewsletterSubscriptionResponse(saved);
+    }
+
+    public boolean isEmailSubscribed(String email) {
+        return repository.existsByEmail(email);
     }
 
     public PageResponse<NewsletterSubscriptionResponse> getSubscribers(String search, int page, int perPage) {

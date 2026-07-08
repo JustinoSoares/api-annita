@@ -15,7 +15,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/newsletter")
@@ -26,6 +31,45 @@ public class NewsletterController {
 
     public NewsletterController(NewsletterSubscriptionService service) {
         this.service = service;
+    }
+
+    @GetMapping("/status")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN', 'SCOPE_COMPANY')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Check if the authenticated user is subscribed to the newsletter", description = "Returns whether the logged-in user's email is subscribed.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Subscription status retrieved")
+    })
+    public ResponseEntity<Map<String, Boolean>> getSubscriptionStatus(@AuthenticationPrincipal Jwt jwt) {
+        String email = jwt.getClaimAsString("email");
+        boolean subscribed = service.isEmailSubscribed(email);
+        return ResponseEntity.ok(Map.of("subscribed", subscribed));
+    }
+
+    @PostMapping("/update/request")
+    @Operation(summary = "Request verification code to update subscription", description = "Sends a 6-digit code to the subscriber's email to authorize the update.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Verification code sent to email"),
+        @ApiResponse(responseCode = "404", description = "Subscription not found")
+    })
+    public ResponseEntity<Void> requestUpdate(@Valid @RequestBody UnsubscribeRequest request) {
+        service.sendUpdateCode(request.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/update/confirm")
+    @Operation(summary = "Confirm subscription update with verification code", description = "Updates name and preferred categories after verifying the code.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Subscription updated successfully",
+                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                        schema = @Schema(implementation = NewsletterSubscriptionResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid or expired code"),
+        @ApiResponse(responseCode = "404", description = "Subscription not found")
+    })
+    public ResponseEntity<NewsletterSubscriptionResponse> confirmUpdate(@Valid @RequestBody NewsletterUpdateRequest request) {
+        NewsletterSubscriptionResponse response = service.confirmUpdate(
+                request.getEmail(), request.getCode(), request.getName(), request.getCategoryIds());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/subscribe")
