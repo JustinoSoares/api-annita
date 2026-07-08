@@ -33,7 +33,7 @@ public class GoogleAuthService {
     @SuppressWarnings("unchecked")
     public LoginResponse authenticate(String idToken) {
         if (googleClientId == null || googleClientId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "O login com Google não está configurado. Contacte o administrador.");
         }
 
