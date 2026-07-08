@@ -49,6 +49,20 @@ public class ReportController {
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/{id}/my")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CONTRIBUTOR', 'SCOPE_MODERATOR', 'SCOPE_ADMIN', 'SCOPE_COMPANY')")
+    @Operation(summary = "Remove your own report", description = "Allows the owner of a report to remove it. If the event had 3+ reports and now has fewer than 3, it returns to approved.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Report removed successfully"),
+        @ApiResponse(responseCode = "403", description = "Forbidden — not the owner of the report"),
+        @ApiResponse(responseCode = "404", description = "Report not found")
+    })
+    public ResponseEntity<Void> removeMyReport(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getClaim("userId"));
+        reportService.removeOwnReport(id, userId);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_MODERATOR')")
     @Operation(summary = "Remove a report", description = "Accessible only by ADMIN or MODERATOR. If the event had 3+ reports and now has fewer than 3, it returns to approved.")

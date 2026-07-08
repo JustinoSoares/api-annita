@@ -44,6 +44,27 @@ public class ReportService {
     }
 
     @Transactional
+    public void removeOwnReport(UUID reportId, UUID userId) {
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Denúncia não encontrada"));
+
+        if (!report.getReportedBy().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Só pode remover as suas próprias denúncias");
+        }
+
+        Event event = report.getEvent();
+        reportRepository.delete(report);
+
+        if (event.getStatus() == EventStatus.REPORTED) {
+            long remaining = reportRepository.countByEventId(event.getId());
+            if (remaining < 3) {
+                event.setStatus(EventStatus.APPROVED);
+                eventRepository.save(event);
+            }
+        }
+    }
+
+    @Transactional
     public void removeReport(UUID reportId) {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Denúncia não encontrada"));
