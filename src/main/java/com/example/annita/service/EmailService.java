@@ -1,10 +1,10 @@
 package com.example.annita.service;
 
+import com.example.annita.dto.EmailMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,60 +12,35 @@ public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
-    private final boolean enabled;
+    private final RabbitTemplate rabbitTemplate;
+    private final String emailExchange;
+    private final String emailRoutingKey;
 
-    public EmailService(java.util.Optional<JavaMailSender> mailSender, @Value("${app.email.enabled:false}") boolean enabled) {
-        this.mailSender = mailSender.orElse(null);
-        this.enabled = enabled;
+    public EmailService(RabbitTemplate rabbitTemplate,
+                        @Value("${app.rabbitmq.email.exchange:email.exchange}") String emailExchange,
+                        @Value("${app.rabbitmq.email.routing-key:email.routing-key}") String emailRoutingKey) {
+        this.rabbitTemplate = rabbitTemplate;
+        this.emailExchange = emailExchange;
+        this.emailRoutingKey = emailRoutingKey;
     }
 
     public void sendVerificationCode(String to, String code) {
-        String subject = "Annita — Código de verificação";
-        String body = "O seu código de verificação é: " + code + "\n\nEste código é válido por 15 minutos.";
-
-        if (enabled && mailSender != null) {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(body);
-            mailSender.send(message);
-        }
-
-        log.info("[EMAIL] Para: {} | Assunto: {} | Código: {}", to, subject, code);
-    }
-
-    public void sendNewEventNotification(String to, String eventTitle, String eventDescription, String eventLink) {
-        String subject = "Annita — Novo evento: " + eventTitle;
-        String body = "Um novo evento foi publicado na Annita!\n\n"
-                + "Título: " + eventTitle + "\n"
-                + "Descrição: " + eventDescription + "\n"
-                + "Link: " + eventLink + "\n\n"
-                + "Acesse a plataforma para mais detalhes.";
-
-        if (enabled && mailSender != null) {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(body);
-            mailSender.send(message);
-        }
-
-        log.info("[EMAIL] Para: {} | Assunto: {} | Evento: {}", to, subject, eventTitle);
+        EmailMessage message = EmailMessage.verificationCode(to, code);
+        publish(message);
     }
 
     public void sendEventReportedNotification(String to, String eventTitle) {
-        String subject = "Annita — Evento denunciado";
-        String body = "O seu evento \"" + eventTitle + "\" foi removido da plataforma após receber denúncias.";
+        EmailMessage message = EmailMessage.eventReported(to, eventTitle);
+        publish(message);
+    }
 
-        if (enabled && mailSender != null) {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(body);
-            mailSender.send(message);
-        }
+    public void sendNewEventNotification(String to, String eventTitle, String eventDescription, String eventLink) {
+        EmailMessage message = EmailMessage.newEvent(to, eventTitle, eventDescription, eventLink);
+        publish(message);
+    }
 
-        log.info("[EMAIL] Para: {} | Assunto: {} | Evento: {}", to, subject, eventTitle);
+    private void publish(EmailMessage message) {
+        log.info("[EMAIL] Publicando na fila: Para: {} | Assunto: {}", message.to(), message.subject());
+        rabbitTemplate.convertAndSend(emailExchange, emailRoutingKey, message);
     }
 }
