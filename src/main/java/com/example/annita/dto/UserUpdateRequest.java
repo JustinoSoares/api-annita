@@ -20,4 +20,6 @@ public class UserUpdateRequest {
     private String password;
 
     private Boolean receiveNotifications;
+
+    private Boolean active;
 }

@@ -70,6 +70,10 @@ public class UserService {
                     .companyWebsite(request.getCompanyWebsite());
         }
 
+        if (role == UserRole.COMPANY) {
+            builder.isActive(false);
+        }
+
         User savedUser = userRepository.save(builder.build());
         return new UserResponse(savedUser);
     }
@@ -183,6 +187,10 @@ public class UserService {
 
         if (request.getReceiveNotifications() != null) {
             user.setReceiveNotifications(request.getReceiveNotifications());
+        }
+
+        if (request.getActive() != null) {
+            user.setActive(request.getActive());
         }
 
         User updatedUser = userRepository.save(user);

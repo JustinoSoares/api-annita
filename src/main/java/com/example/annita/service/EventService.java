@@ -59,13 +59,17 @@ public class EventService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado"));
 
+        if (user.getRole() == UserRole.COMPANY && !user.isActive()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "A sua conta de empresa ainda não foi ativada. Aguarde a ativação por um administrador.");
+        }
+
         long pendingCount = eventRepository.countByCreatedByIdAndStatus(userId, EventStatus.PENDING);
-        if (pendingCount > 0) {
+        if (pendingCount > 0 && user.getRole() != UserRole.COMPANY) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Você já possui um evento pendente de aprovação. Aguarde a aprovação antes de criar outro.");
         }
 
         boolean hasReportedEvents = eventRepository.countByCreatedByIdAndStatus(userId, EventStatus.REPORTED) > 0;
-        boolean autoApprove = user.getApprovedEventCount() >= 1 && !hasReportedEvents;
+        boolean autoApprove = user.getRole() == UserRole.COMPANY || (user.getApprovedEventCount() >= 1 && !hasReportedEvents);
 
         Event event = Event.builder()
                 .title(request.getTitle())
