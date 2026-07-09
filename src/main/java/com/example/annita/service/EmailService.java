@@ -35,6 +35,25 @@ public class EmailService {
         log.info("[EMAIL] Para: {} | Assunto: {} | Código: {}", to, subject, code);
     }
 
+    public void sendNewEventNotification(String to, String eventTitle, String eventDescription, String eventLink) {
+        String subject = "Annita — Novo evento: " + eventTitle;
+        String body = "Um novo evento foi publicado na Annita!\n\n"
+                + "Título: " + eventTitle + "\n"
+                + "Descrição: " + eventDescription + "\n"
+                + "Link: " + eventLink + "\n\n"
+                + "Acesse a plataforma para mais detalhes.";
+
+        if (enabled && mailSender != null) {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(body);
+            mailSender.send(message);
+        }
+
+        log.info("[EMAIL] Para: {} | Assunto: {} | Evento: {}", to, subject, eventTitle);
+    }
+
     public void sendEventReportedNotification(String to, String eventTitle) {
         String subject = "Annita — Evento denunciado";
         String body = "O seu evento \"" + eventTitle + "\" foi removido da plataforma após receber denúncias.";

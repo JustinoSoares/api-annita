@@ -4,6 +4,7 @@ import com.example.annita.dto.NewsletterSubscriptionResponse;
 import com.example.annita.dto.PageResponse;
 import com.example.annita.dto.SubscribeRequest;
 import com.example.annita.model.Category;
+import com.example.annita.model.Event;
 import com.example.annita.model.NewsletterSubscription;
 import com.example.annita.repository.CategoryRepository;
 import com.example.annita.repository.NewsletterSubscriptionRepository;
@@ -134,6 +135,18 @@ public class NewsletterSubscriptionService {
 
         NewsletterSubscription saved = repository.save(subscription);
         return new NewsletterSubscriptionResponse(saved);
+    }
+
+    public void notifySubscribersAboutNewEvent(Event event) {
+        List<NewsletterSubscription> subscribers = repository.findSubscribersForCategory(event.getCategory().getId());
+        for (NewsletterSubscription subscriber : subscribers) {
+            emailService.sendNewEventNotification(
+                    subscriber.getEmail(),
+                    event.getTitle(),
+                    event.getDescription(),
+                    event.getLink()
+            );
+        }
     }
 
     public boolean isEmailSubscribed(String email) {

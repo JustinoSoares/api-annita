@@ -32,8 +32,9 @@ public class EventService {
     private final ReportRepository reportRepository;
     private final EventVoteRepository eventVoteRepository;
     private final NotificationService notificationService;
+    private final NewsletterSubscriptionService newsletterSubscriptionService;
 
-    public EventService(EventRepository eventRepository, CategoryRepository categoryRepository, UserRepository userRepository, EmailService emailService, ReportRepository reportRepository, EventVoteRepository eventVoteRepository, NotificationService notificationService) {
+    public EventService(EventRepository eventRepository, CategoryRepository categoryRepository, UserRepository userRepository, EmailService emailService, ReportRepository reportRepository, EventVoteRepository eventVoteRepository, NotificationService notificationService, NewsletterSubscriptionService newsletterSubscriptionService) {
         this.eventRepository = eventRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
@@ -41,6 +42,7 @@ public class EventService {
         this.reportRepository = reportRepository;
         this.eventVoteRepository = eventVoteRepository;
         this.notificationService = notificationService;
+        this.newsletterSubscriptionService = newsletterSubscriptionService;
     }
 
     public PageResponse<EventResponse> getEvents(String search, UUID categoryId, EventModality modality, EventType type, EventStatus status, UUID userId, String role, int page, int perPage) {
@@ -80,6 +82,11 @@ public class EventService {
                 .build();
 
         Event saved = eventRepository.save(event);
+
+        if (autoApprove) {
+            newsletterSubscriptionService.notifySubscribersAboutNewEvent(saved);
+        }
+
         return buildResponse(saved, userId);
     }
 
