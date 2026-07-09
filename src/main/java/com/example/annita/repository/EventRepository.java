@@ -22,4 +22,6 @@ public interface EventRepository extends JpaRepository<Event, UUID>, JpaSpecific
     long countByCreatedByIdAndStatus(UUID userId, EventStatus status);
 
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    long countByStatus(EventStatus status);
 }

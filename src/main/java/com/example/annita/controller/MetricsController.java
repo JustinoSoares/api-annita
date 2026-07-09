@@ -1,6 +1,7 @@
 package com.example.annita.controller;
 
 import com.example.annita.dto.MetricsResponse;
+import com.example.annita.model.EventStatus;
 import com.example.annita.repository.EventRepository;
 import com.example.annita.repository.NewsletterSubscriptionRepository;
 import com.example.annita.repository.UserRepository;
@@ -32,7 +33,7 @@ public class MetricsController {
     @Operation(summary = "Get public platform metrics", description = "Returns total events, newsletter subscribers, and active contributors. No authentication required.")
     public ResponseEntity<MetricsResponse> getMetrics() {
         MetricsResponse metrics = new MetricsResponse(
-                eventRepository.count(),
+                eventRepository.countByStatus(EventStatus.APPROVED),
                 newsletterSubscriptionRepository.count(),
                 userRepository.countByIsActiveTrue()
         );
