@@ -23,9 +23,9 @@ public class NewsletterSubscriptionResponse {
         this.name = subscription.getName();
         this.email = subscription.getEmail();
         this.createdAt = subscription.getCreatedAt();
-        if (subscription.getPreferredCategories() != null) {
-            this.preferredCategories = subscription.getPreferredCategories().stream()
-                    .map(CategoryResponse::new)
+        if (subscription.getSubscriptionCategories() != null && !subscription.getSubscriptionCategories().isEmpty()) {
+            this.preferredCategories = subscription.getSubscriptionCategories().stream()
+                    .map(sc -> new CategoryResponse(sc.getCategory()))
                     .collect(Collectors.toList());
         } else {
             this.preferredCategories = Collections.emptyList();

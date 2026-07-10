@@ -21,6 +21,6 @@ public interface NewsletterSubscriptionRepository extends JpaRepository<Newslett
 
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
-    @Query("SELECT DISTINCT s FROM NewsletterSubscription s LEFT JOIN s.preferredCategories pc WHERE pc.id = :categoryId OR pc IS NULL")
+    @Query("SELECT DISTINCT s FROM NewsletterSubscription s LEFT JOIN s.subscriptionCategories sc LEFT JOIN sc.category c WHERE c.id = :categoryId OR sc IS NULL")
     List<NewsletterSubscription> findSubscribersForCategory(@Param("categoryId") UUID categoryId);
 }

@@ -32,13 +32,8 @@ public class NewsletterSubscription {
     @Column(name = "verification_code_expires_at")
     private LocalDateTime verificationCodeExpiresAt;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "tb_newsletter_subscription_categories",
-            joinColumns = @JoinColumn(name = "subscription_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id")
-    )
-    private List<Category> preferredCategories;
+    @OneToMany(mappedBy = "subscription", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NewsletterSubscriptionCategory> subscriptionCategories = new ArrayList<>();
 
     @Column(nullable = false, name = "created_at", updatable = false)
     private LocalDateTime createdAt;

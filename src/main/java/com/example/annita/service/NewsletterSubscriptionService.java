@@ -6,6 +6,7 @@ import com.example.annita.dto.SubscribeRequest;
 import com.example.annita.model.Category;
 import com.example.annita.model.Event;
 import com.example.annita.model.NewsletterSubscription;
+import com.example.annita.model.NewsletterSubscriptionCategory;
 import com.example.annita.repository.CategoryRepository;
 import com.example.annita.repository.NewsletterSubscriptionRepository;
 import com.example.annita.repository.specification.NewsletterSubscriptionSpecifications;
@@ -52,7 +53,12 @@ public class NewsletterSubscriptionService {
             if (categories.size() != request.getCategoryIds().size()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Uma ou mais categorias não encontradas");
             }
-            subscription.setPreferredCategories(categories);
+            subscription.setSubscriptionCategories(categories.stream()
+                    .map(category -> NewsletterSubscriptionCategory.builder()
+                            .subscription(subscription)
+                            .category(category)
+                            .build())
+                    .collect(Collectors.toList()));
         }
 
         NewsletterSubscription saved = repository.save(subscription);
@@ -123,14 +129,17 @@ public class NewsletterSubscriptionService {
         subscription.setVerificationCode(null);
         subscription.setVerificationCodeExpiresAt(null);
 
+        subscription.getSubscriptionCategories().clear();
         if (categoryIds != null && !categoryIds.isEmpty()) {
             List<Category> categories = categoryRepository.findAllById(categoryIds);
             if (categories.size() != categoryIds.size()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Uma ou mais categorias não encontradas");
             }
-            subscription.setPreferredCategories(categories);
-        } else {
-            subscription.setPreferredCategories(null);
+            categories.forEach(category -> subscription.getSubscriptionCategories()
+                    .add(NewsletterSubscriptionCategory.builder()
+                            .subscription(subscription)
+                            .category(category)
+                            .build()));
         }
 
         NewsletterSubscription saved = repository.save(subscription);
