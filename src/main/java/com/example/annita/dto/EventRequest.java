@@ -4,6 +4,7 @@ import com.example.annita.model.EventModality;
 import com.example.annita.model.EventType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,7 @@ public class EventRequest {
     private String title;
 
     @NotBlank(message = "Descrição é obrigatória")
+    @Size(max = 5000, message = "Descrição deve ter no máximo 5000 caracteres")
     private String description;
 
     @Size(max = 500, message = "Link deve ter no máximo 500 caracteres")
@@ -37,6 +39,7 @@ public class EventRequest {
     private EventType type;
 
     @Size(max = 500, message = "URL da imagem de capa deve ter no máximo 500 caracteres")
+    @Pattern(regexp = "(?i).*\\.(jpg|jpeg|png|gif|webp|svg|bmp|ico|avif)(\\?.*)?$", message = "URL da imagem de capa deve ter uma extensão de imagem válida (jpg, jpeg, png, gif, webp, svg, bmp, ico, avif)")
     private String coverImage;
 
     @Size(max = 500, message = "Localização deve ter no máximo 500 caracteres")

@@ -35,17 +35,22 @@ public class RegisterRequest {
     private UserRole role = UserRole.CONTRIBUTOR;
 
     @Schema(description = "Company name (required if role=COMPANY, ignored otherwise)", nullable = true)
+    @Size(max = 200, message = "Nome da empresa não pode exceder 200 caracteres")
     private String companyName;
 
     @Schema(description = "Company tax ID / NIF (only for COMPANY accounts)", nullable = true)
+    @Size(max = 20, message = "NIF da empresa não pode exceder 20 caracteres")
     private String companyNif;
 
     @Schema(description = "Company phone number (only for COMPANY accounts)", nullable = true)
+    @Size(max = 20, message = "Telefone da empresa não pode exceder 20 caracteres")
     private String companyPhone;
 
     @Schema(description = "Company address (only for COMPANY accounts)", nullable = true)
+    @Size(max = 300, message = "Endereço da empresa não pode exceder 300 caracteres")
     private String companyAddress;
 
     @Schema(description = "Company website (only for COMPANY accounts)", nullable = true)
+    @Size(max = 200, message = "Site da empresa não pode exceder 200 caracteres")
     private String companyWebsite;
 }

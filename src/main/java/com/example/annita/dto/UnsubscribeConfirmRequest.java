@@ -12,6 +12,7 @@ public class UnsubscribeConfirmRequest {
 
     @NotBlank(message = "Email é obrigatório")
     @Email(message = "Formato de email inválido")
+    @Size(max = 100, message = "Email não pode exceder 100 caracteres")
     private String email;
 
     @NotBlank(message = "Código de verificação é obrigatório")

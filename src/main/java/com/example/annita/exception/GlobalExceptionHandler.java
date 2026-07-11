@@ -122,9 +122,40 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        String sqlState = extractSqlState(ex);
+        if (sqlState != null) {
+            switch (sqlState) {
+                case "22001":
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("message", "Um dos campos enviados excede o limite de caracteres permitido."));
+                case "23505":
+                    return ResponseEntity
+                            .status(HttpStatus.CONFLICT)
+                            .body(Map.of("message", "Já existe um registro com este valor. Verifique os dados únicos."));
+                case "23502":
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("message", "Um campo obrigatório não foi preenchido."));
+                case "23503":
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("message", "O registro referenciado não existe."));
+            }
+        }
+        log.error("Erro de integridade de dados não identificado", ex);
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(Map.of("message", "Não foi possível concluir a operação. Tente novamente."));
+    }
+
+    private String extractSqlState(Throwable t) {
+        if (t == null) return null;
+        if (t instanceof java.sql.SQLException sqle) {
+            String state = sqle.getSQLState();
+            if (state != null && !state.isBlank()) return state;
+        }
+        return extractSqlState(t.getCause());
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
