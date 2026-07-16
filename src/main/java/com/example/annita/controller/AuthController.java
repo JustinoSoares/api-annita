@@ -1,5 +1,6 @@
 package com.example.annita.controller;
 
+import com.example.annita.config.LoginRateLimiter;
 import com.example.annita.dto.GoogleLoginRequest;
 import com.example.annita.dto.LoginRequest;
 import com.example.annita.dto.LoginResponse;
@@ -18,6 +19,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,11 +39,13 @@ public class AuthController {
     private final UserService userService;
     private final TokenService tokenService;
     private final GoogleAuthService googleAuthService;
+    private final LoginRateLimiter loginRateLimiter;
 
-    public AuthController(UserService userService, TokenService tokenService, GoogleAuthService googleAuthService) {
+    public AuthController(UserService userService, TokenService tokenService, GoogleAuthService googleAuthService, LoginRateLimiter loginRateLimiter) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.googleAuthService = googleAuthService;
+        this.loginRateLimiter = loginRateLimiter;
     }
 
     @PostMapping("/register")
@@ -70,11 +74,22 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Login successful",
                      content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                                         schema = @Schema(implementation = LoginResponse.class))),
-        @ApiResponse(responseCode = "401", description = "Invalid credentials")
+        @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+        @ApiResponse(responseCode = "429", description = "Too many login attempts")
     })
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        String ip = getClientIp(httpRequest);
+        loginRateLimiter.check(ip);
         LoginResponse response = userService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) {
+            return xff.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     @PostMapping("/google")
